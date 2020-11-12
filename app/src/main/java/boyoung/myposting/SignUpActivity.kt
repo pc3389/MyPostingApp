@@ -1,16 +1,28 @@
 package boyoung.myposting
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import boyoung.myposting.Utility.CognitoHelper
+import boyoung.myposting.Utility.Constants
+import com.amplifyframework.auth.AuthUserAttribute
+import com.amplifyframework.auth.AuthUserAttributeKey
+import com.amplifyframework.auth.options.AuthSignUpOptions
+import com.amplifyframework.core.Amplify
 import kotlinx.android.synthetic.main.activity_sign_up.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SignUpActivity : AppCompatActivity() {
+    private val context = this
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
-        val cognitoHelper = CognitoHelper(this)
 
         textView_signUp.setOnClickListener {
             val username:String = editText_signUpId.text.toString()
@@ -26,11 +38,45 @@ class SignUpActivity : AppCompatActivity() {
                     Toast.makeText(this, "Email is required", Toast.LENGTH_SHORT).show()
                 }
             } else {
-                val signUp = cognitoHelper.signUp(username, password, emailAddress, phoneNumber)
-                if(signUp == "") {
-                    //TODO Confirmation
+                CoroutineScope(IO).launch {
+                    signUp(username, password, emailAddress, phoneNumber)
                 }
             }
         }
     }
+
+    suspend fun signUp(userName: String, password: String, email: String, phoneNumber: String) {
+        withContext(IO) {
+            val attributes: ArrayList<AuthUserAttribute> = ArrayList()
+            //"my@email.com"
+            attributes.add(AuthUserAttribute(AuthUserAttributeKey.email(), email))
+            //"+15551234567"
+            attributes.add(AuthUserAttribute(AuthUserAttributeKey.phoneNumber(), phoneNumber))
+            Amplify.Auth.signUp(
+                userName,
+                password,
+                AuthSignUpOptions.builder().userAttributes(attributes).build(),
+                { result -> Log.i("MyAmplifyApp", "Result: $result")
+                    if(result.isSignUpComplete) {
+                        startConfirmationActivity(userName)
+                    }
+
+                },
+                { error -> Log.e("MyAmplifyApp", "Sign up failed", error)
+                    runOnUiThread {
+                        Toast.makeText(context,  error.recoverySuggestion, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
+        }
+    }
+
+    fun startConfirmationActivity(username: String) {
+        val intent = Intent(this, ConfirmationActivity::class.java).apply {
+            putExtra(Constants.KEY_USERNAME, username)
+        }
+        startActivity(intent)
+        finish()
+    }
+
 }
