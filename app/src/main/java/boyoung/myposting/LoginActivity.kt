@@ -23,8 +23,8 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         Amplify.Auth.fetchAuthSession(
-            { result -> Log.i("MyAmplifyApp", result.toString())
-                if(result.isSignedIn) {
+            { result ->
+                if (result.isSignedIn) {
                     startMainActivity()
                 }
             },
@@ -46,7 +46,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun logIn(username: String, password: String) {
+    private suspend fun logIn(username: String, password: String) {
         withContext(IO) {
             Amplify.Auth.signIn(
                 username,
@@ -56,11 +56,11 @@ class LoginActivity : AppCompatActivity() {
                 },
                 { error ->
                     Log.e("MyAmplifyApp", error.toString())
-                    if(error.recoverySuggestion == "Please confirm user first and then retry operation") {
+                    if (error.recoverySuggestion == "Please confirm user first and then retry operation") {
                         startConfirmationActivity(username)
                     }
                     runOnUiThread {
-                        Toast.makeText(context,  error.recoverySuggestion, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, error.recoverySuggestion, Toast.LENGTH_SHORT).show()
                     }
                 }
             )
@@ -68,12 +68,13 @@ class LoginActivity : AppCompatActivity() {
 
     }
 
-    fun startMainActivity() {
-        val intent = Intent(this, MainActivity:: class.java)
+    private fun startMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
     }
-    fun startConfirmationActivity(username: String) {
+
+    private fun startConfirmationActivity(username: String) {
         val intent = Intent(this, ConfirmationActivity::class.java).apply {
             putExtra(Constants.KEY_USERNAME, username)
         }

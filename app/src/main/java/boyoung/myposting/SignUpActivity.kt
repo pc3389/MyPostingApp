@@ -45,7 +45,7 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun signUp(userName: String, password: String, email: String, phoneNumber: String) {
+    private suspend fun signUp(userName: String, password: String, email: String, phoneNumber: String) {
         withContext(IO) {
             val attributes: ArrayList<AuthUserAttribute> = ArrayList()
             //"my@email.com"
@@ -71,7 +71,7 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
-    fun startConfirmationActivity(username: String) {
+    private fun startConfirmationActivity(username: String) {
         val intent = Intent(this, ConfirmationActivity::class.java).apply {
             putExtra(Constants.KEY_USERNAME, username)
         }

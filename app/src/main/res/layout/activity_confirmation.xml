@@ -35,8 +35,20 @@
         android:id="@+id/textView_confirm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="88dp"
         android:text="Confirm"
         android:textSize="25sp"
-        tools:layout_editor_absoluteX="104dp"
-        tools:layout_editor_absoluteY="343dp" />
+        app:layout_constraintStart_toStartOf="@+id/editText_Confirmation"
+        app:layout_constraintTop_toBottomOf="@+id/editText_Confirmation" />
+
+    <TextView
+        android:id="@+id/textView_resend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:text="Resend"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/textView_confirm"
+        app:layout_constraintTop_toBottomOf="@+id/textView_confirm" />
 </androidx.constraintlayout.widget.ConstraintLayout>
