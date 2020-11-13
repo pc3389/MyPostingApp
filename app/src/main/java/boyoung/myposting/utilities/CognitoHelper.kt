@@ -1,20 +1,9 @@
-package boyoung.myposting.Utility
+package boyoung.myposting.utilities
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
-import boyoung.myposting.LoginActivity
 import boyoung.myposting.R
-import com.amplifyframework.auth.AuthChannelEventName
-import com.amplifyframework.auth.AuthUserAttribute
-import com.amplifyframework.auth.AuthUserAttributeKey
-import com.amplifyframework.auth.options.AuthSignUpOptions
 import com.amplifyframework.core.Amplify
-import com.amplifyframework.core.InitializationStatus
-import com.amplifyframework.hub.HubChannel
-import com.amplifyframework.hub.HubEvent
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 
 class CognitoHelper(private val context: Context) {
 

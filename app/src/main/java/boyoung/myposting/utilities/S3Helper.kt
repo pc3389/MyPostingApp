@@ -1,4 +1,4 @@
-package boyoung.myposting.Utility
+package boyoung.myposting.utilities
 
 import android.util.Log
 import com.amplifyframework.core.Amplify

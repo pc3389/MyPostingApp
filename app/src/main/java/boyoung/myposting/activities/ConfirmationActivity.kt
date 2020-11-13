@@ -1,11 +1,11 @@
-package boyoung.myposting
+package boyoung.myposting.activities
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
-import boyoung.myposting.Utility.Constants
+import boyoung.myposting.R
+import boyoung.myposting.utilities.Constants
 import com.amplifyframework.core.Amplify
 import kotlinx.android.synthetic.main.activity_confirmation.*
 import kotlinx.coroutines.CoroutineScope

@@ -1,16 +1,14 @@
-package boyoung.myposting
+package boyoung.myposting.activities
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
-import boyoung.myposting.Utility.CognitoHelper
+import boyoung.myposting.R
 import com.amplifyframework.core.Amplify
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 

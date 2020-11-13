@@ -1,4 +1,4 @@
-package boyoung.myposting.Utility
+package boyoung.myposting.utilities
 
 class Constants {
     companion object {
