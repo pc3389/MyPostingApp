@@ -31,6 +31,9 @@ class LoginActivity : AppCompatActivity() {
             { error -> Log.e("MyAmplifyApp", error.toString()) }
         )
 
+        textView_guest.setOnClickListener {
+            startMainActivity()
+        }
 
         textView_signUp.setOnClickListener {
             val intent = Intent(this, SignUpActivity::class.java)

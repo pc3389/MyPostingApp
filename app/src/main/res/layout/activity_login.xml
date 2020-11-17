@@ -51,5 +51,15 @@
         app:layout_constraintStart_toStartOf="@+id/textView_signUp"
         app:layout_constraintTop_toBottomOf="@+id/editText_signIn_password" />
 
+    <TextView
+        android:id="@+id/textView_guest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Guest"
+        android:textSize="30sp"
+        app:layout_constraintStart_toStartOf="@+id/textView_signUp"
+        app:layout_constraintTop_toBottomOf="@+id/textView_signUp" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
