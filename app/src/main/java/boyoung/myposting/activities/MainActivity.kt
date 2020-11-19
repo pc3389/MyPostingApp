@@ -12,7 +12,6 @@ import boyoung.myposting.PostAdapters
 import boyoung.myposting.R
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Post
-import com.amplifyframework.datastore.generated.model.PostStatus
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
@@ -28,16 +27,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        button_signout.setOnClickListener {
-            CoroutineScope(IO).launch {
-                signOut()
-            }
-        }
 
         button_add.setOnClickListener {
-            CoroutineScope(IO).launch {
-                addPost()
-            }
+            toPostActivity()
         }
         CoroutineScope(IO).launch {
             queryPost()
@@ -48,20 +40,9 @@ class MainActivity : AppCompatActivity() {
         post_rc.adapter = PostAdapters(posts, this)
     }
 
-    private suspend fun addPost() {
-        withContext(IO) {
-            val post = Post.builder()
-                .title("My First Post")
-                .contents("Contents")
-                .status(PostStatus.PUBLISHED)
-                .image("Image")
-                .build()
-
-            Amplify.DataStore.save(post,
-                { Log.i("MyAmplifyApp", "Saved a post.") },
-                { Log.e("MyAmplifyApp", "Save failed.", it) }
-            )
-        }
+    private fun toPostActivity() {
+        val intent = Intent(this, PostActivity::class.java)
+        startActivity(intent)
     }
 
 
@@ -114,6 +95,12 @@ class MainActivity : AppCompatActivity() {
             R.id.action_profile -> {
                 val intent = Intent(this, ProfileActivity::class.java)
                 startActivity(intent)
+                return true
+            }
+            R.id.action_signOut -> {
+                CoroutineScope(IO).launch {
+                    signOut()
+                }
                 return true
             }
             else -> super.onOptionsItemSelected(item)
