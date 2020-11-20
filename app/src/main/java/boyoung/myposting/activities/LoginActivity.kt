@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import boyoung.myposting.R
 import boyoung.myposting.utilities.Constants
@@ -11,6 +12,7 @@ import com.amplifyframework.core.Amplify
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -25,8 +27,11 @@ class LoginActivity : AppCompatActivity() {
         Amplify.Auth.fetchAuthSession(
             { result ->
                 if (result.isSignedIn) {
+                    progressbar.visibility = View.VISIBLE
+                    login_layout.visibility = View.GONE
                     startMainActivity()
                 }
+                Log.i("MyAmplifyApp", result.toString())
             },
             { error -> Log.e("MyAmplifyApp", error.toString()) }
         )
@@ -38,24 +43,29 @@ class LoginActivity : AppCompatActivity() {
         textView_signUp.setOnClickListener {
             val intent = Intent(this, SignUpActivity::class.java)
             startActivity(intent)
+            finish()
         }
 
         textView_logIn.setOnClickListener {
             val username: String = editText_signIn_id.text.toString()
             val password: String = editText_signIn_password.text.toString()
-            CoroutineScope(IO).launch {
+            CoroutineScope(Main).launch {
                 logIn(username, password)
             }
         }
     }
 
-    private suspend fun logIn(username: String, password: String) {
+    private suspend fun logIn(username: String, password: String) = withContext(Main) {
+        progressbar.visibility = View.VISIBLE
+        login_layout.visibility = View.GONE
         withContext(IO) {
             Amplify.Auth.signIn(
                 username,
                 password,
                 {
                     startMainActivity()
+                    Log.e("MyAmplifyApp", "login")
+                    finish()
                 },
                 { error ->
                     Log.e("MyAmplifyApp", error.toString())
@@ -64,6 +74,8 @@ class LoginActivity : AppCompatActivity() {
                     }
                     runOnUiThread {
                         Toast.makeText(context, error.recoverySuggestion, Toast.LENGTH_SHORT).show()
+                        progressbar.visibility = View.GONE
+                        login_layout.visibility = View.VISIBLE
                     }
                 }
             )
@@ -74,7 +86,6 @@ class LoginActivity : AppCompatActivity() {
     private fun startMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
-        finish()
     }
 
     private fun startConfirmationActivity(username: String) {

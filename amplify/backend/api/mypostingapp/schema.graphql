@@ -1,20 +1,32 @@
 type Post @model {
-  id: ID!
-  title: String!
-  contents: String!
-  status: PostStatus!
-  image: String
-  comments: [Comment] @connection(keyName: "byPost", fields: ["id"])
+    id: ID!
+    username: String!
+    title: String!
+    status: PostStatus!
+    date: String!
+    contents: String
+    nickName: String
+    image: String
+    comments: [Comment] @connection(keyName: "byPost", fields: ["id"])
+}
+
+type Profile @model {
+    id: ID!
+    username: String!
+    nickname: String!
+    profileImage: String
+    backgroundImage: String
 }
 
 type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
-  id: ID!
-  postID: ID!
-  post: Post @connection(fields: ["postID"])
-  content: String!
+    id: ID!
+    username: String!
+    postID: ID!
+    post: Post @connection(fields: ["postID"])
+    content: String!
 }
 
 enum PostStatus {
-  DRAFT
-  PUBLISHED
+    DRAFT
+    PUBLISHED
 }

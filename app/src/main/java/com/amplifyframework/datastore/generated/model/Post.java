@@ -21,30 +21,48 @@ import static com.amplifyframework.core.model.query.predicate.QueryField.field;
 @ModelConfig(pluralName = "Posts")
 public final class Post implements Model {
   public static final QueryField ID = field("id");
+  public static final QueryField USERNAME = field("username");
   public static final QueryField TITLE = field("title");
-  public static final QueryField CONTENTS = field("contents");
   public static final QueryField STATUS = field("status");
+  public static final QueryField DATE = field("date");
+  public static final QueryField CONTENTS = field("contents");
+  public static final QueryField NICK_NAME = field("nickName");
   public static final QueryField IMAGE = field("image");
   private final @ModelField(targetType="ID", isRequired = true) String id;
+  private final @ModelField(targetType="String", isRequired = true) String username;
   private final @ModelField(targetType="String", isRequired = true) String title;
-  private final @ModelField(targetType="String", isRequired = true) String contents;
   private final @ModelField(targetType="PostStatus", isRequired = true) PostStatus status;
+  private final @ModelField(targetType="String", isRequired = true) String date;
+  private final @ModelField(targetType="String") String contents;
+  private final @ModelField(targetType="String") String nickName;
   private final @ModelField(targetType="String") String image;
   private final @ModelField(targetType="Comment") @HasMany(associatedWith = "post", type = Comment.class) List<Comment> comments = null;
   public String getId() {
       return id;
   }
   
+  public String getUsername() {
+      return username;
+  }
+  
   public String getTitle() {
       return title;
+  }
+  
+  public PostStatus getStatus() {
+      return status;
+  }
+  
+  public String getDate() {
+      return date;
   }
   
   public String getContents() {
       return contents;
   }
   
-  public PostStatus getStatus() {
-      return status;
+  public String getNickName() {
+      return nickName;
   }
   
   public String getImage() {
@@ -55,11 +73,14 @@ public final class Post implements Model {
       return comments;
   }
   
-  private Post(String id, String title, String contents, PostStatus status, String image) {
+  private Post(String id, String username, String title, PostStatus status, String date, String contents, String nickName, String image) {
     this.id = id;
+    this.username = username;
     this.title = title;
-    this.contents = contents;
     this.status = status;
+    this.date = date;
+    this.contents = contents;
+    this.nickName = nickName;
     this.image = image;
   }
   
@@ -72,9 +93,12 @@ public final class Post implements Model {
       } else {
       Post post = (Post) obj;
       return ObjectsCompat.equals(getId(), post.getId()) &&
+              ObjectsCompat.equals(getUsername(), post.getUsername()) &&
               ObjectsCompat.equals(getTitle(), post.getTitle()) &&
-              ObjectsCompat.equals(getContents(), post.getContents()) &&
               ObjectsCompat.equals(getStatus(), post.getStatus()) &&
+              ObjectsCompat.equals(getDate(), post.getDate()) &&
+              ObjectsCompat.equals(getContents(), post.getContents()) &&
+              ObjectsCompat.equals(getNickName(), post.getNickName()) &&
               ObjectsCompat.equals(getImage(), post.getImage());
       }
   }
@@ -83,9 +107,12 @@ public final class Post implements Model {
    public int hashCode() {
     return new StringBuilder()
       .append(getId())
+      .append(getUsername())
       .append(getTitle())
-      .append(getContents())
       .append(getStatus())
+      .append(getDate())
+      .append(getContents())
+      .append(getNickName())
       .append(getImage())
       .toString()
       .hashCode();
@@ -96,15 +123,18 @@ public final class Post implements Model {
     return new StringBuilder()
       .append("Post {")
       .append("id=" + String.valueOf(getId()) + ", ")
+      .append("username=" + String.valueOf(getUsername()) + ", ")
       .append("title=" + String.valueOf(getTitle()) + ", ")
-      .append("contents=" + String.valueOf(getContents()) + ", ")
       .append("status=" + String.valueOf(getStatus()) + ", ")
+      .append("date=" + String.valueOf(getDate()) + ", ")
+      .append("contents=" + String.valueOf(getContents()) + ", ")
+      .append("nickName=" + String.valueOf(getNickName()) + ", ")
       .append("image=" + String.valueOf(getImage()))
       .append("}")
       .toString();
   }
   
-  public static TitleStep builder() {
+  public static UsernameStep builder() {
       return new Builder();
   }
   
@@ -132,44 +162,60 @@ public final class Post implements Model {
       null,
       null,
       null,
+      null,
+      null,
+      null,
       null
     );
   }
   
   public CopyOfBuilder copyOfBuilder() {
     return new CopyOfBuilder(id,
+      username,
       title,
-      contents,
       status,
+      date,
+      contents,
+      nickName,
       image);
   }
-  public interface TitleStep {
-    ContentsStep title(String title);
+  public interface UsernameStep {
+    TitleStep username(String username);
   }
   
 
-  public interface ContentsStep {
-    StatusStep contents(String contents);
+  public interface TitleStep {
+    StatusStep title(String title);
   }
   
 
   public interface StatusStep {
-    BuildStep status(PostStatus status);
+    DateStep status(PostStatus status);
+  }
+  
+
+  public interface DateStep {
+    BuildStep date(String date);
   }
   
 
   public interface BuildStep {
     Post build();
     BuildStep id(String id) throws IllegalArgumentException;
+    BuildStep contents(String contents);
+    BuildStep nickName(String nickName);
     BuildStep image(String image);
   }
   
 
-  public static class Builder implements TitleStep, ContentsStep, StatusStep, BuildStep {
+  public static class Builder implements UsernameStep, TitleStep, StatusStep, DateStep, BuildStep {
     private String id;
+    private String username;
     private String title;
-    private String contents;
     private PostStatus status;
+    private String date;
+    private String contents;
+    private String nickName;
     private String image;
     @Override
      public Post build() {
@@ -177,30 +223,52 @@ public final class Post implements Model {
         
         return new Post(
           id,
+          username,
           title,
-          contents,
           status,
+          date,
+          contents,
+          nickName,
           image);
     }
     
     @Override
-     public ContentsStep title(String title) {
+     public TitleStep username(String username) {
+        Objects.requireNonNull(username);
+        this.username = username;
+        return this;
+    }
+    
+    @Override
+     public StatusStep title(String title) {
         Objects.requireNonNull(title);
         this.title = title;
         return this;
     }
     
     @Override
-     public StatusStep contents(String contents) {
-        Objects.requireNonNull(contents);
+     public DateStep status(PostStatus status) {
+        Objects.requireNonNull(status);
+        this.status = status;
+        return this;
+    }
+    
+    @Override
+     public BuildStep date(String date) {
+        Objects.requireNonNull(date);
+        this.date = date;
+        return this;
+    }
+    
+    @Override
+     public BuildStep contents(String contents) {
         this.contents = contents;
         return this;
     }
     
     @Override
-     public BuildStep status(PostStatus status) {
-        Objects.requireNonNull(status);
-        this.status = status;
+     public BuildStep nickName(String nickName) {
+        this.nickName = nickName;
         return this;
     }
     
@@ -233,12 +301,20 @@ public final class Post implements Model {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, String title, String contents, PostStatus status, String image) {
+    private CopyOfBuilder(String id, String username, String title, PostStatus status, String date, String contents, String nickName, String image) {
       super.id(id);
-      super.title(title)
-        .contents(contents)
+      super.username(username)
+        .title(title)
         .status(status)
+        .date(date)
+        .contents(contents)
+        .nickName(nickName)
         .image(image);
+    }
+    
+    @Override
+     public CopyOfBuilder username(String username) {
+      return (CopyOfBuilder) super.username(username);
     }
     
     @Override
@@ -247,13 +323,23 @@ public final class Post implements Model {
     }
     
     @Override
+     public CopyOfBuilder status(PostStatus status) {
+      return (CopyOfBuilder) super.status(status);
+    }
+    
+    @Override
+     public CopyOfBuilder date(String date) {
+      return (CopyOfBuilder) super.date(date);
+    }
+    
+    @Override
      public CopyOfBuilder contents(String contents) {
       return (CopyOfBuilder) super.contents(contents);
     }
     
     @Override
-     public CopyOfBuilder status(PostStatus status) {
-      return (CopyOfBuilder) super.status(status);
+     public CopyOfBuilder nickName(String nickName) {
+      return (CopyOfBuilder) super.nickName(nickName);
     }
     
     @Override

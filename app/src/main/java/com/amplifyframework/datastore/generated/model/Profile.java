@@ -1,6 +1,5 @@
 package com.amplifyframework.datastore.generated.model;
 
-import com.amplifyframework.core.model.annotations.BelongsTo;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,19 +15,20 @@ import com.amplifyframework.core.model.query.predicate.QueryField;
 
 import static com.amplifyframework.core.model.query.predicate.QueryField.field;
 
-/** This is an auto generated class representing the Comment type in your schema. */
+/** This is an auto generated class representing the Profile type in your schema. */
 @SuppressWarnings("all")
-@ModelConfig(pluralName = "Comments")
-@Index(name = "byPost", fields = {"postID","content"})
-public final class Comment implements Model {
+@ModelConfig(pluralName = "Profiles")
+public final class Profile implements Model {
   public static final QueryField ID = field("id");
   public static final QueryField USERNAME = field("username");
-  public static final QueryField POST = field("postID");
-  public static final QueryField CONTENT = field("content");
+  public static final QueryField NICKNAME = field("nickname");
+  public static final QueryField PROFILE_IMAGE = field("profileImage");
+  public static final QueryField BACKGROUND_IMAGE = field("backgroundImage");
   private final @ModelField(targetType="ID", isRequired = true) String id;
   private final @ModelField(targetType="String", isRequired = true) String username;
-  private final @ModelField(targetType="Post") @BelongsTo(targetName = "postID", type = Post.class) Post post;
-  private final @ModelField(targetType="String", isRequired = true) String content;
+  private final @ModelField(targetType="String", isRequired = true) String nickname;
+  private final @ModelField(targetType="String") String profileImage;
+  private final @ModelField(targetType="String") String backgroundImage;
   public String getId() {
       return id;
   }
@@ -37,19 +37,24 @@ public final class Comment implements Model {
       return username;
   }
   
-  public Post getPost() {
-      return post;
+  public String getNickname() {
+      return nickname;
   }
   
-  public String getContent() {
-      return content;
+  public String getProfileImage() {
+      return profileImage;
   }
   
-  private Comment(String id, String username, Post post, String content) {
+  public String getBackgroundImage() {
+      return backgroundImage;
+  }
+  
+  private Profile(String id, String username, String nickname, String profileImage, String backgroundImage) {
     this.id = id;
     this.username = username;
-    this.post = post;
-    this.content = content;
+    this.nickname = nickname;
+    this.profileImage = profileImage;
+    this.backgroundImage = backgroundImage;
   }
   
   @Override
@@ -59,11 +64,12 @@ public final class Comment implements Model {
       } else if(obj == null || getClass() != obj.getClass()) {
         return false;
       } else {
-      Comment comment = (Comment) obj;
-      return ObjectsCompat.equals(getId(), comment.getId()) &&
-              ObjectsCompat.equals(getUsername(), comment.getUsername()) &&
-              ObjectsCompat.equals(getPost(), comment.getPost()) &&
-              ObjectsCompat.equals(getContent(), comment.getContent());
+      Profile profile = (Profile) obj;
+      return ObjectsCompat.equals(getId(), profile.getId()) &&
+              ObjectsCompat.equals(getUsername(), profile.getUsername()) &&
+              ObjectsCompat.equals(getNickname(), profile.getNickname()) &&
+              ObjectsCompat.equals(getProfileImage(), profile.getProfileImage()) &&
+              ObjectsCompat.equals(getBackgroundImage(), profile.getBackgroundImage());
       }
   }
   
@@ -72,8 +78,9 @@ public final class Comment implements Model {
     return new StringBuilder()
       .append(getId())
       .append(getUsername())
-      .append(getPost())
-      .append(getContent())
+      .append(getNickname())
+      .append(getProfileImage())
+      .append(getBackgroundImage())
       .toString()
       .hashCode();
   }
@@ -81,11 +88,12 @@ public final class Comment implements Model {
   @Override
    public String toString() {
     return new StringBuilder()
-      .append("Comment {")
+      .append("Profile {")
       .append("id=" + String.valueOf(getId()) + ", ")
       .append("username=" + String.valueOf(getUsername()) + ", ")
-      .append("post=" + String.valueOf(getPost()) + ", ")
-      .append("content=" + String.valueOf(getContent()))
+      .append("nickname=" + String.valueOf(getNickname()) + ", ")
+      .append("profileImage=" + String.valueOf(getProfileImage()) + ", ")
+      .append("backgroundImage=" + String.valueOf(getBackgroundImage()))
       .append("}")
       .toString();
   }
@@ -103,7 +111,7 @@ public final class Comment implements Model {
    * @return an instance of this model with only ID populated
    * @throws IllegalArgumentException Checks that ID is in the proper format
    */
-  public static Comment justId(String id) {
+  public static Profile justId(String id) {
     try {
       UUID.fromString(id); // Check that ID is in the UUID format - if not an exception is thrown
     } catch (Exception exception) {
@@ -113,8 +121,9 @@ public final class Comment implements Model {
               "creating a new object, use the standard builder method and leave the ID field blank."
       );
     }
-    return new Comment(
+    return new Profile(
       id,
+      null,
       null,
       null,
       null
@@ -124,59 +133,69 @@ public final class Comment implements Model {
   public CopyOfBuilder copyOfBuilder() {
     return new CopyOfBuilder(id,
       username,
-      post,
-      content);
+      nickname,
+      profileImage,
+      backgroundImage);
   }
   public interface UsernameStep {
-    ContentStep username(String username);
+    NicknameStep username(String username);
   }
   
 
-  public interface ContentStep {
-    BuildStep content(String content);
+  public interface NicknameStep {
+    BuildStep nickname(String nickname);
   }
   
 
   public interface BuildStep {
-    Comment build();
+    Profile build();
     BuildStep id(String id) throws IllegalArgumentException;
-    BuildStep post(Post post);
+    BuildStep profileImage(String profileImage);
+    BuildStep backgroundImage(String backgroundImage);
   }
   
 
-  public static class Builder implements UsernameStep, ContentStep, BuildStep {
+  public static class Builder implements UsernameStep, NicknameStep, BuildStep {
     private String id;
     private String username;
-    private String content;
-    private Post post;
+    private String nickname;
+    private String profileImage;
+    private String backgroundImage;
     @Override
-     public Comment build() {
+     public Profile build() {
         String id = this.id != null ? this.id : UUID.randomUUID().toString();
         
-        return new Comment(
+        return new Profile(
           id,
           username,
-          post,
-          content);
+          nickname,
+          profileImage,
+          backgroundImage);
     }
     
     @Override
-     public ContentStep username(String username) {
+     public NicknameStep username(String username) {
         Objects.requireNonNull(username);
         this.username = username;
         return this;
     }
     
     @Override
-     public BuildStep content(String content) {
-        Objects.requireNonNull(content);
-        this.content = content;
+     public BuildStep nickname(String nickname) {
+        Objects.requireNonNull(nickname);
+        this.nickname = nickname;
         return this;
     }
     
     @Override
-     public BuildStep post(Post post) {
-        this.post = post;
+     public BuildStep profileImage(String profileImage) {
+        this.profileImage = profileImage;
+        return this;
+    }
+    
+    @Override
+     public BuildStep backgroundImage(String backgroundImage) {
+        this.backgroundImage = backgroundImage;
         return this;
     }
     
@@ -203,11 +222,12 @@ public final class Comment implements Model {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, String username, Post post, String content) {
+    private CopyOfBuilder(String id, String username, String nickname, String profileImage, String backgroundImage) {
       super.id(id);
       super.username(username)
-        .content(content)
-        .post(post);
+        .nickname(nickname)
+        .profileImage(profileImage)
+        .backgroundImage(backgroundImage);
     }
     
     @Override
@@ -216,13 +236,18 @@ public final class Comment implements Model {
     }
     
     @Override
-     public CopyOfBuilder content(String content) {
-      return (CopyOfBuilder) super.content(content);
+     public CopyOfBuilder nickname(String nickname) {
+      return (CopyOfBuilder) super.nickname(nickname);
     }
     
     @Override
-     public CopyOfBuilder post(Post post) {
-      return (CopyOfBuilder) super.post(post);
+     public CopyOfBuilder profileImage(String profileImage) {
+      return (CopyOfBuilder) super.profileImage(profileImage);
+    }
+    
+    @Override
+     public CopyOfBuilder backgroundImage(String backgroundImage) {
+      return (CopyOfBuilder) super.backgroundImage(backgroundImage);
     }
   }
   

@@ -1,158 +1,25 @@
 # this is an auto generated file. This will be overwritten
-query SyncBlogs(
-  $filter: ModelBlogFilterInput
-  $limit: Int
-  $nextToken: String
-  $lastSync: AWSTimestamp
-) {
-  syncBlogs(
-    filter: $filter
-    limit: $limit
-    nextToken: $nextToken
-    lastSync: $lastSync
-  ) {
-    items {
-      id
-      name
-      posts {
-        nextToken
-        startedAt
-      }
-      _version
-      _deleted
-      _lastChangedAt
-      createdAt
-      updatedAt
-    }
-    nextToken
-    startedAt
-  }
-}
-query GetBlog($id: ID!) {
-  getBlog(id: $id) {
-    id
-    name
-    posts {
-      items {
-        id
-        title
-        blogID
-        image
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
-      nextToken
-      startedAt
-    }
-    _version
-    _deleted
-    _lastChangedAt
-    createdAt
-    updatedAt
-  }
-}
-query ListBlogs(
-  $filter: ModelBlogFilterInput
-  $limit: Int
-  $nextToken: String
-) {
-  listBlogs(filter: $filter, limit: $limit, nextToken: $nextToken) {
-    items {
-      id
-      name
-      posts {
-        nextToken
-        startedAt
-      }
-      _version
-      _deleted
-      _lastChangedAt
-      createdAt
-      updatedAt
-    }
-    nextToken
-    startedAt
-  }
-}
-query SyncPosts(
-  $filter: ModelPostFilterInput
-  $limit: Int
-  $nextToken: String
-  $lastSync: AWSTimestamp
-) {
-  syncPosts(
-    filter: $filter
-    limit: $limit
-    nextToken: $nextToken
-    lastSync: $lastSync
-  ) {
-    items {
-      id
-      title
-      blogID
-      blog {
-        id
-        name
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
-      image
-      comments {
-        nextToken
-        startedAt
-      }
-      _version
-      _deleted
-      _lastChangedAt
-      createdAt
-      updatedAt
-    }
-    nextToken
-    startedAt
-  }
-}
 query GetPost($id: ID!) {
   getPost(id: $id) {
     id
+    username
     title
-    blogID
-    blog {
-      id
-      name
-      posts {
-        nextToken
-        startedAt
-      }
-      _version
-      _deleted
-      _lastChangedAt
-      createdAt
-      updatedAt
-    }
+    status
+    date
+    contents
+    nickName
     image
     comments {
       items {
         id
+        username
         postID
         content
-        _version
-        _deleted
-        _lastChangedAt
         createdAt
         updatedAt
       }
       nextToken
-      startedAt
     }
-    _version
-    _deleted
-    _lastChangedAt
     createdAt
     updatedAt
   }
@@ -165,101 +32,72 @@ query ListPosts(
   listPosts(filter: $filter, limit: $limit, nextToken: $nextToken) {
     items {
       id
+      username
       title
-      blogID
-      blog {
-        id
-        name
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
+      status
+      date
+      contents
+      nickName
       image
       comments {
         nextToken
-        startedAt
       }
-      _version
-      _deleted
-      _lastChangedAt
       createdAt
       updatedAt
     }
     nextToken
-    startedAt
   }
 }
-query SyncComments(
-  $filter: ModelCommentFilterInput
+query GetProfile($id: ID!) {
+  getProfile(id: $id) {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
+    createdAt
+    updatedAt
+  }
+}
+query ListProfiles(
+  $filter: ModelProfileFilterInput
   $limit: Int
   $nextToken: String
-  $lastSync: AWSTimestamp
 ) {
-  syncComments(
-    filter: $filter
-    limit: $limit
-    nextToken: $nextToken
-    lastSync: $lastSync
-  ) {
+  listProfiles(filter: $filter, limit: $limit, nextToken: $nextToken) {
     items {
       id
-      postID
-      post {
-        id
-        title
-        blogID
-        image
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
-      content
-      _version
-      _deleted
-      _lastChangedAt
+      username
+      nickname
+      profileImage
+      backgroundImage
       createdAt
       updatedAt
     }
     nextToken
-    startedAt
   }
 }
 query GetComment($id: ID!) {
   getComment(id: $id) {
     id
+    username
     postID
     post {
       id
+      username
       title
-      blogID
-      blog {
-        id
-        name
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
+      status
+      date
+      contents
+      nickName
       image
       comments {
         nextToken
-        startedAt
       }
-      _version
-      _deleted
-      _lastChangedAt
       createdAt
       updatedAt
     }
     content
-    _version
-    _deleted
-    _lastChangedAt
     createdAt
     updatedAt
   }
@@ -272,26 +110,24 @@ query ListComments(
   listComments(filter: $filter, limit: $limit, nextToken: $nextToken) {
     items {
       id
+      username
       postID
       post {
         id
+        username
         title
-        blogID
+        status
+        date
+        contents
+        nickName
         image
-        _version
-        _deleted
-        _lastChangedAt
         createdAt
         updatedAt
       }
       content
-      _version
-      _deleted
-      _lastChangedAt
       createdAt
       updatedAt
     }
     nextToken
-    startedAt
   }
 }

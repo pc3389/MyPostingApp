@@ -1,130 +1,28 @@
 # this is an auto generated file. This will be overwritten
-mutation CreateBlog(
-  $input: CreateBlogInput!
-  $condition: ModelBlogConditionInput
-) {
-  createBlog(input: $input, condition: $condition) {
-    id
-    name
-    posts {
-      items {
-        id
-        title
-        blogID
-        image
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
-      nextToken
-      startedAt
-    }
-    _version
-    _deleted
-    _lastChangedAt
-    createdAt
-    updatedAt
-  }
-}
-mutation UpdateBlog(
-  $input: UpdateBlogInput!
-  $condition: ModelBlogConditionInput
-) {
-  updateBlog(input: $input, condition: $condition) {
-    id
-    name
-    posts {
-      items {
-        id
-        title
-        blogID
-        image
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
-      nextToken
-      startedAt
-    }
-    _version
-    _deleted
-    _lastChangedAt
-    createdAt
-    updatedAt
-  }
-}
-mutation DeleteBlog(
-  $input: DeleteBlogInput!
-  $condition: ModelBlogConditionInput
-) {
-  deleteBlog(input: $input, condition: $condition) {
-    id
-    name
-    posts {
-      items {
-        id
-        title
-        blogID
-        image
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
-      nextToken
-      startedAt
-    }
-    _version
-    _deleted
-    _lastChangedAt
-    createdAt
-    updatedAt
-  }
-}
 mutation CreatePost(
   $input: CreatePostInput!
   $condition: ModelPostConditionInput
 ) {
   createPost(input: $input, condition: $condition) {
     id
+    username
     title
-    blogID
-    blog {
-      id
-      name
-      posts {
-        nextToken
-        startedAt
-      }
-      _version
-      _deleted
-      _lastChangedAt
-      createdAt
-      updatedAt
-    }
+    status
+    date
+    contents
+    nickName
     image
     comments {
       items {
         id
+        username
         postID
         content
-        _version
-        _deleted
-        _lastChangedAt
         createdAt
         updatedAt
       }
       nextToken
-      startedAt
     }
-    _version
-    _deleted
-    _lastChangedAt
     createdAt
     updatedAt
   }
@@ -135,39 +33,24 @@ mutation UpdatePost(
 ) {
   updatePost(input: $input, condition: $condition) {
     id
+    username
     title
-    blogID
-    blog {
-      id
-      name
-      posts {
-        nextToken
-        startedAt
-      }
-      _version
-      _deleted
-      _lastChangedAt
-      createdAt
-      updatedAt
-    }
+    status
+    date
+    contents
+    nickName
     image
     comments {
       items {
         id
+        username
         postID
         content
-        _version
-        _deleted
-        _lastChangedAt
         createdAt
         updatedAt
       }
       nextToken
-      startedAt
     }
-    _version
-    _deleted
-    _lastChangedAt
     createdAt
     updatedAt
   }
@@ -178,39 +61,66 @@ mutation DeletePost(
 ) {
   deletePost(input: $input, condition: $condition) {
     id
+    username
     title
-    blogID
-    blog {
-      id
-      name
-      posts {
-        nextToken
-        startedAt
-      }
-      _version
-      _deleted
-      _lastChangedAt
-      createdAt
-      updatedAt
-    }
+    status
+    date
+    contents
+    nickName
     image
     comments {
       items {
         id
+        username
         postID
         content
-        _version
-        _deleted
-        _lastChangedAt
         createdAt
         updatedAt
       }
       nextToken
-      startedAt
     }
-    _version
-    _deleted
-    _lastChangedAt
+    createdAt
+    updatedAt
+  }
+}
+mutation CreateProfile(
+  $input: CreateProfileInput!
+  $condition: ModelProfileConditionInput
+) {
+  createProfile(input: $input, condition: $condition) {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
+    createdAt
+    updatedAt
+  }
+}
+mutation UpdateProfile(
+  $input: UpdateProfileInput!
+  $condition: ModelProfileConditionInput
+) {
+  updateProfile(input: $input, condition: $condition) {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
+    createdAt
+    updatedAt
+  }
+}
+mutation DeleteProfile(
+  $input: DeleteProfileInput!
+  $condition: ModelProfileConditionInput
+) {
+  deleteProfile(input: $input, condition: $condition) {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
     createdAt
     updatedAt
   }
@@ -221,35 +131,24 @@ mutation CreateComment(
 ) {
   createComment(input: $input, condition: $condition) {
     id
+    username
     postID
     post {
       id
+      username
       title
-      blogID
-      blog {
-        id
-        name
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
+      status
+      date
+      contents
+      nickName
       image
       comments {
         nextToken
-        startedAt
       }
-      _version
-      _deleted
-      _lastChangedAt
       createdAt
       updatedAt
     }
     content
-    _version
-    _deleted
-    _lastChangedAt
     createdAt
     updatedAt
   }
@@ -260,35 +159,24 @@ mutation UpdateComment(
 ) {
   updateComment(input: $input, condition: $condition) {
     id
+    username
     postID
     post {
       id
+      username
       title
-      blogID
-      blog {
-        id
-        name
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
+      status
+      date
+      contents
+      nickName
       image
       comments {
         nextToken
-        startedAt
       }
-      _version
-      _deleted
-      _lastChangedAt
       createdAt
       updatedAt
     }
     content
-    _version
-    _deleted
-    _lastChangedAt
     createdAt
     updatedAt
   }
@@ -299,35 +187,24 @@ mutation DeleteComment(
 ) {
   deleteComment(input: $input, condition: $condition) {
     id
+    username
     postID
     post {
       id
+      username
       title
-      blogID
-      blog {
-        id
-        name
-        _version
-        _deleted
-        _lastChangedAt
-        createdAt
-        updatedAt
-      }
+      status
+      date
+      contents
+      nickName
       image
       comments {
         nextToken
-        startedAt
       }
-      _version
-      _deleted
-      _lastChangedAt
       createdAt
       updatedAt
     }
     content
-    _version
-    _deleted
-    _lastChangedAt
     createdAt
     updatedAt
   }

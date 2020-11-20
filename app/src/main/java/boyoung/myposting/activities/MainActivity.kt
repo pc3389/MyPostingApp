@@ -15,6 +15,7 @@ import com.amplifyframework.datastore.generated.model.Post
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -31,17 +32,17 @@ class MainActivity : AppCompatActivity() {
         button_add.setOnClickListener {
             toPostActivity()
         }
-        CoroutineScope(IO).launch {
+        CoroutineScope(Main).launch {
             queryPost()
+            linearLayoutManager = LinearLayoutManager(context)
+            post_rc.layoutManager = linearLayoutManager
+            post_rc.adapter = PostAdapters(posts, context)
         }
 
-        linearLayoutManager = LinearLayoutManager(this)
-        post_rc.layoutManager = linearLayoutManager
-        post_rc.adapter = PostAdapters(posts, this)
     }
 
     private fun toPostActivity() {
-        val intent = Intent(this, PostActivity::class.java)
+        val intent = Intent(this, UploadActivity::class.java)
         startActivity(intent)
     }
 
@@ -51,9 +52,9 @@ class MainActivity : AppCompatActivity() {
             Amplify.DataStore.query(Post::class.java,
                 {
                     while (it.hasNext()) {
-                        posts.add(it.next())
-                        Log.i("MyAmplifyApp", "Title: ${it.next().title}")
+                        posts.add(0,it.next())
                     }
+                    Log.i("MyAmplifyApp", "Query $it")
                 },
                 { Log.e("MyAmplifyApp", "Query failed.", it) }
             )
