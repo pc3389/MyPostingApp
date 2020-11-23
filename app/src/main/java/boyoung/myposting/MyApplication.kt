@@ -3,6 +3,7 @@ package boyoung.myposting
 import android.app.Application
 import android.util.Log
 import com.amplifyframework.AmplifyException
+import com.amplifyframework.api.aws.AWSApiPlugin
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.AWSDataStorePlugin
@@ -17,11 +18,11 @@ class MyApplication : Application() {
             Amplify.addPlugin(AWSCognitoAuthPlugin())
             Amplify.addPlugin(AWSS3StoragePlugin())
             Amplify.addPlugin(AWSDataStorePlugin())
+            Amplify.addPlugin(AWSApiPlugin())
             Amplify.configure(applicationContext)
             Log.i("MyAmplify", "Initialized Amplify")
         } catch (error: AmplifyException) {
             Log.e("MyAmplify", "Could not initialize Amplify", error)
         }
     }
-
 }

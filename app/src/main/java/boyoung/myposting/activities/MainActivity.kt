@@ -1,15 +1,19 @@
 package boyoung.myposting.activities
 
 import android.content.Intent
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import boyoung.myposting.PostAdapters
 import boyoung.myposting.R
+import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Post
 import kotlinx.android.synthetic.main.activity_main.*
@@ -18,6 +22,7 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.internal.wait
 
 class MainActivity : AppCompatActivity() {
     private val context = this
@@ -29,16 +34,36 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        linearLayoutManager = LinearLayoutManager(context)
+        post_rc.layoutManager = linearLayoutManager
+        post_rc.adapter = PostAdapters(posts, context)
+
         button_add.setOnClickListener {
             toPostActivity()
         }
-        CoroutineScope(Main).launch {
+        val a = CoroutineScope(Main).launch {
+            itemsswipetorefresh.visibility = View.INVISIBLE
+            progressbar_main.visibility = View.VISIBLE
             queryPost()
-            linearLayoutManager = LinearLayoutManager(context)
-            post_rc.layoutManager = linearLayoutManager
-            post_rc.adapter = PostAdapters(posts, context)
         }
 
+        itemsswipetorefresh.setProgressBackgroundColorSchemeColor(
+            ContextCompat.getColor(
+                this,
+                R.color.colorPrimary
+            )
+        )
+        itemsswipetorefresh.setColorSchemeColors(Color.WHITE)
+
+        itemsswipetorefresh.setOnRefreshListener {
+            a.cancel()
+            CoroutineScope(Main).launch {
+                itemsswipetorefresh.visibility = View.INVISIBLE
+                progressbar_main.visibility = View.VISIBLE
+                posts.clear()
+                queryPost()
+            }
+        }
     }
 
     private fun toPostActivity() {
@@ -47,32 +72,47 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private suspend fun queryPost() {
-        withContext(IO) {
-            Amplify.DataStore.query(Post::class.java,
-                {
-                    while (it.hasNext()) {
-                        posts.add(0,it.next())
-                    }
-                    Log.i("MyAmplifyApp", "Query $it")
-                },
-                { Log.e("MyAmplifyApp", "Query failed.", it) }
-            )
-        }
+    private suspend fun queryPost() = withContext(IO) {
 
-    }
-
-    private suspend fun signOut() {
-        withContext(IO) {
-            Amplify.Auth.signOut(
-                { startLoginActivity() },
-                { error ->
+        Amplify.API.query(
+            ModelQuery.list(Post::class.java, Post.TITLE.contains("")),
+            { response ->
+                for (post in response.data) {
+                    posts.add(post)
+                    Log.i("MyAmplifyApp", post.title)
                     runOnUiThread {
-                        Toast.makeText(context, error.recoverySuggestion, Toast.LENGTH_SHORT).show()
+                        post_rc.adapter = PostAdapters(posts, context)
+                        posts.sortByDescending { it.date }
+                        itemsswipetorefresh.isRefreshing = false
                     }
                 }
-            )
-        }
+                runOnUiThread {
+                    itemsswipetorefresh.visibility = View.VISIBLE
+                    progressbar_main.visibility = View.GONE
+                }
+
+            },
+            { error ->
+                Log.e("MyAmplifyApp", "Query failure", error)
+                runOnUiThread {
+                    itemsswipetorefresh.visibility = View.VISIBLE
+                    progressbar_main.visibility = View.GONE
+                }
+            }
+        )
+    }
+
+    private suspend fun signOut() = withContext(IO) {
+        Amplify.Auth.signOut(
+            {
+                startLoginActivity()
+            },
+            { error ->
+                runOnUiThread {
+                    Toast.makeText(context, error.recoverySuggestion, Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
     }
 
     private fun startLoginActivity() {
@@ -107,4 +147,6 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+
 }

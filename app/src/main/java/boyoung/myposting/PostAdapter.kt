@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import boyoung.myposting.activities.PostActivity
 import boyoung.myposting.utilities.Constants
 import com.amplifyframework.core.Amplify
-import com.amplifyframework.core.model.query.Where
 import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.storage.StorageException
 import com.amplifyframework.storage.result.StorageDownloadFileResult
@@ -27,28 +26,32 @@ import kotlinx.android.synthetic.main.post_list_item.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.lang.StringBuilder
 
 class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
     RecyclerView.Adapter<PostAdapters.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         // Holds the TextView that will add each animal to
-        val userNameTextView: TextView = view.username_tv
-        val titleTextView: TextView = view.title_tv
-        val contentTextView: TextView = view.content_tv
-        val commentsTextView: TextView = view.comments_tv
-        val imageImageView: ImageView = view.postImage_iv
-        val progressbar: ConstraintLayout = view.progressbar
-        val itemLayout: ConstraintLayout = view.item_layout
+        val nameTextView: TextView = view.name_tv_item
+        val dateTextView: TextView = view.date_tv_item
+        val titleTextView: TextView = view.title_tv_item
+        val contentTextView: TextView = view.content_tv_item
+        val commentsTextView: TextView = view.comments_tv_item
+        val imageImageView: ImageView = view.postImage_iv_item
+        val progressbar: ConstraintLayout = view.progressbar_item
+        val itemLayout: ConstraintLayout = view.layout_item
+        val profileImageView: ImageView = view.profile_image_iv_item
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
             LayoutInflater.from(context).inflate(
-                R.layout.post_list_item,
+                R.layout.main_list_item,
                 parent,
                 false
             )
@@ -56,22 +59,19 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        CoroutineScope(Main).launch {
-            val image = items[position].image
+        val a = CoroutineScope(Main).launch {
             holder.progressbar.visibility = View.VISIBLE
             holder.itemLayout.visibility = View.GONE
-            withContext(IO) {
-                if (items[position].image != null) {
-                    loadImageFromS3(image, holder)
-                } else {
-                    withContext(Main) {
-                        holder.progressbar.visibility = View.GONE
-                        holder.itemLayout.visibility = View.VISIBLE
-                    }
-                }
-            }
             val username = items[position].username
-            holder.userNameTextView.text = username
+            val name = if (items[position].nickName == null) {
+                username
+            } else {
+                items[position].nickName
+            }
+
+            holder.nameTextView.text = name
+            val date = items[position].date
+            holder.dateTextView.text = date
             val title = items[position].title
             holder.titleTextView.text = title
             val content = items[position].contents
@@ -83,27 +83,182 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
                 items[position].comments.size.toString()
             } + "Comments"
             holder.commentsTextView.text = numberOfComments
+
+            val profileImagePath = context.cacheDir.toString() + "/$username"
+            val profileImageKey = getProfileImageKey(username)
+            loadProfileImage(profileImagePath, profileImageKey, holder)
+
+            val image = items[position].image
+            val filepath = context.cacheDir.toString() + "/$image"
+            if (items[position].image != null) {
+                loadImageFromS3(filepath, image, holder)
+            } else {
+                holder.progressbar.visibility = View.GONE
+                holder.imageImageView.visibility = View.GONE
+                holder.itemLayout.visibility = View.VISIBLE
+            }
             holder.itemView.setOnClickListener {
                 val intent = Intent(context, PostActivity::class.java).apply {
                     putExtra(Constants.POST_ID, items[position].id)
-                    putExtra(Constants.POST_IMAGE, image)
-                    putExtra(Constants.POST_USERNAME, username)
+                    putExtra(Constants.POST_DATE, date)
+                    if (File(filepath).exists()) {
+                        putExtra(Constants.POST_IMAGE, filepath)
+                    }
+                    putExtra(Constants.POST_NAME, name)
                     putExtra(Constants.POST_TITLE, title)
                     putExtra(Constants.POST_CONTENT, content)
+                    putExtra(Constants.PROFILE_IMAGE_PATH, profileImagePath)
                 }
                 context.startActivity(intent)
             }
-
         }
     }
 
-    fun loadImageFromS3(image: String, holder:ViewHolder) {
-        Amplify.Storage.downloadFile(
-            image,
-            File(context.cacheDir.toString() + "/$image"),
-            { result: StorageDownloadFileResult ->
+    private suspend fun loadImageFromS3(filepath: String, image: String, holder: ViewHolder) =
+        withContext(Main) {
+            val file = File(filepath)
+            if (!file.exists()) {
+                withContext(IO) {
+                    Amplify.Storage.downloadFile(
+                        image,
+                        file,
+                        { result: StorageDownloadFileResult ->
+                            Glide.with(context)
+                                .load(result.file)
+                                .listener(object : RequestListener<Drawable> {
+                                    override fun onLoadFailed(
+                                        e: GlideException?,
+                                        model: Any?,
+                                        target: Target<Drawable>?,
+                                        isFirstResource: Boolean
+                                    ): Boolean {
+                                        holder.progressbar.visibility = View.GONE
+                                        holder.imageImageView.visibility = View.VISIBLE
+                                        holder.itemLayout.visibility = View.VISIBLE
+                                        return false
+                                    }
+
+                                    override fun onResourceReady(
+                                        resource: Drawable?,
+                                        model: Any?,
+                                        target: Target<Drawable>?,
+                                        dataSource: DataSource?,
+                                        isFirstResource: Boolean
+                                    ): Boolean {
+                                        holder.progressbar.visibility = View.GONE
+                                        holder.imageImageView.visibility = View.VISIBLE
+                                        holder.itemLayout.visibility = View.VISIBLE
+                                        return false
+                                    }
+                                })
+                                .into(holder.imageImageView)
+                        },
+                        { error: StorageException? ->
+                            Log.e(
+                                "MyAmplifyApp",
+                                "Download Failure",
+                                error
+                            )
+                            holder.progressbar.visibility = View.GONE
+                            holder.imageImageView.visibility = View.VISIBLE
+                            holder.itemLayout.visibility = View.VISIBLE
+                        }
+                    )
+                }
+
+            } else {
+                val glideWork = CoroutineScope(Main).launch {
+                    Glide.with(context)
+                        .load(file)
+                        .listener(object : RequestListener<Drawable> {
+                            override fun onLoadFailed(
+                                e: GlideException?,
+                                model: Any?,
+                                target: Target<Drawable>?,
+                                isFirstResource: Boolean
+                            ): Boolean {
+                                holder.progressbar.visibility = View.GONE
+                                holder.imageImageView.visibility = View.VISIBLE
+                                holder.itemLayout.visibility = View.VISIBLE
+                                return false
+                            }
+
+                            override fun onResourceReady(
+                                resource: Drawable?,
+                                model: Any?,
+                                target: Target<Drawable>?,
+                                dataSource: DataSource?,
+                                isFirstResource: Boolean
+                            ): Boolean {
+                                holder.progressbar.visibility = View.GONE
+                                holder.imageImageView.visibility = View.VISIBLE
+                                holder.itemLayout.visibility = View.VISIBLE
+                                return false
+                            }
+                        })
+                        .into(holder.imageImageView)
+                }
+                var time: Int = 0
+                while (glideWork.isActive && time < 5) {
+                    delay(200L)
+                    time += 1
+                }
+                if (glideWork.isActive) {
+                    glideWork.cancel()
+                    holder.progressbar.visibility = View.GONE
+                    holder.imageImageView.visibility = View.VISIBLE
+                    holder.itemLayout.visibility = View.VISIBLE
+                } else {
+                    holder.progressbar.visibility = View.GONE
+                    holder.imageImageView.visibility = View.VISIBLE
+                    holder.itemLayout.visibility = View.VISIBLE
+                }
+            }
+        }
+
+    private suspend fun loadProfileImage(filePath: String, imageKey: String, holder: ViewHolder) = withContext(Main) {
+        val file = File(filePath)
+        if (!file.exists()) {
+            Amplify.Storage.downloadFile(
+                imageKey,
+                file,
+                { result: StorageDownloadFileResult ->
+                    Glide.with(context)
+                        .load(result.file)
+                        .listener(object : RequestListener<Drawable> {
+                            override fun onLoadFailed(
+                                e: GlideException?,
+                                model: Any?,
+                                target: Target<Drawable>?,
+                                isFirstResource: Boolean
+                            ): Boolean {
+                                return false
+                            }
+
+                            override fun onResourceReady(
+                                resource: Drawable?,
+                                model: Any?,
+                                target: Target<Drawable>?,
+                                dataSource: DataSource?,
+                                isFirstResource: Boolean
+                            ): Boolean {
+                                return false
+                            }
+                        })
+                        .into(holder.profileImageView)
+                },
+                { error: StorageException? ->
+                    Log.e(
+                        "MyAmplifyApp",
+                        "Download Failure",
+                        error
+                    )
+                }
+            )
+        } else {
+            val glideWork = CoroutineScope(Main).launch {
                 Glide.with(context)
-                    .load(result.file)
+                    .load(file)
                     .listener(object : RequestListener<Drawable> {
                         override fun onLoadFailed(
                             e: GlideException?,
@@ -111,9 +266,6 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
                             target: Target<Drawable>?,
                             isFirstResource: Boolean
                         ): Boolean {
-                            holder.progressbar.visibility = View.GONE
-                            holder.imageImageView.visibility = View.GONE
-                            holder.itemLayout.visibility = View.VISIBLE
                             return false
                         }
 
@@ -124,39 +276,26 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
                             dataSource: DataSource?,
                             isFirstResource: Boolean
                         ): Boolean {
-                            holder.progressbar.visibility = View.GONE
-                            holder.itemLayout.visibility = View.VISIBLE
                             return false
                         }
                     })
-                    .into(holder.imageImageView)
-            },
-            { error: StorageException? ->
-                Log.e(
-                    "MyAmplifyApp",
-                    "Download Failure",
-                    error
-                )
-                holder.progressbar.visibility = View.GONE
-                holder.itemLayout.visibility = View.VISIBLE
+                    .into(holder.profileImageView)
             }
-        )
+            var time = 0
+            while (glideWork.isActive && time < 5) {
+                delay(200L)
+                time += 1
+            }
+            glideWork.cancel()
+        }
     }
+    private suspend fun getProfileImageKey(username: String): String = withContext(Main) {
+        val builder = StringBuilder()
+        builder.append(username)
+        builder.append("_profile.jpg")
 
-    //Delete
-    /*CoroutineScope(IO).launch {
-                    Amplify.DataStore.query(Post::class.java, Where.matches(Post.ID.eq(items[position].id)),
-                        { matches ->
-                            if (matches.hasNext()) {
-                                val post = matches.next()
-                                Amplify.DataStore.delete(post,
-                                    { Log.i("MyAmplifyApp", "Deleted a post.") },
-                                    { Log.e("MyAmplifyApp", "Delete failed.", it) }
-                                )
-                            }
-                        },
-                        { Log.e("MyAmplifyApp", "Query failed.", it) })
-                }*/
+        return@withContext builder.toString()
+    }
 
     override fun getItemCount(): Int {
         return items.size

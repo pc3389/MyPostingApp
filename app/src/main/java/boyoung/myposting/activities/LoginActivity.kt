@@ -1,11 +1,12 @@
 package boyoung.myposting.activities
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import boyoung.myposting.R
 import boyoung.myposting.utilities.Constants
 import com.amplifyframework.core.Amplify
@@ -26,10 +27,26 @@ class LoginActivity : AppCompatActivity() {
 
         Amplify.Auth.fetchAuthSession(
             { result ->
-                if (result.isSignedIn) {
-                    progressbar.visibility = View.VISIBLE
+                if (result.isSignedIn && Amplify.Auth.currentUser.username == "guest") {
+                    Amplify.Auth.signOut(
+                        {
+                            Log.i("MyAmplifyApp", "Signed out successfully")
+                        },
+                        { error ->
+                            runOnUiThread {
+                                Toast.makeText(
+                                    context,
+                                    error.recoverySuggestion,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    )
+                } else if (result.isSignedIn) {
+                    progressbar_item.visibility = View.VISIBLE
                     login_layout.visibility = View.GONE
                     startMainActivity()
+                    finish()
                 }
                 Log.i("MyAmplifyApp", result.toString())
             },
@@ -37,7 +54,7 @@ class LoginActivity : AppCompatActivity() {
         )
 
         textView_guest.setOnClickListener {
-            startMainActivity()
+            CoroutineScope(IO).launch { logIn("guest", "djaak123") }
         }
 
         textView_signUp.setOnClickListener {
@@ -53,10 +70,22 @@ class LoginActivity : AppCompatActivity() {
                 logIn(username, password)
             }
         }
+        editText_signIn_password.setOnEditorActionListener { view, actionId, event ->
+            var handled = false
+            val username: String = editText_signIn_id.text.toString()
+            val password: String = editText_signIn_password.text.toString()
+            if (actionId === EditorInfo.IME_ACTION_DONE) {
+                CoroutineScope(Main).launch {
+                    logIn(username, password)
+                }
+                handled = true
+            }
+            return@setOnEditorActionListener handled
+        }
     }
 
     private suspend fun logIn(username: String, password: String) = withContext(Main) {
-        progressbar.visibility = View.VISIBLE
+        progressbar_item.visibility = View.VISIBLE
         login_layout.visibility = View.GONE
         withContext(IO) {
             Amplify.Auth.signIn(
@@ -64,17 +93,23 @@ class LoginActivity : AppCompatActivity() {
                 password,
                 {
                     startMainActivity()
-                    Log.e("MyAmplifyApp", "login")
+                    Log.i("MyAmplifyApp", "login")
                     finish()
                 },
                 { error ->
                     Log.e("MyAmplifyApp", error.toString())
-                    if (error.recoverySuggestion == "Please confirm user first and then retry operation") {
+                    val recoverySuggestion = error.recoverySuggestion
+                    if (recoverySuggestion == "Please confirm user first and then retry operation") {
                         startConfirmationActivity(username)
                     }
                     runOnUiThread {
-                        Toast.makeText(context, error.recoverySuggestion, Toast.LENGTH_SHORT).show()
-                        progressbar.visibility = View.GONE
+                        if(recoverySuggestion != "See attached exception for more details.") {
+                            Toast.makeText(context, error.recoverySuggestion, Toast.LENGTH_SHORT).show()
+                        } else if (error.cause.toString().contains("Incorrect username or password")) {
+                            Toast.makeText(context, "Incorrect username or password", Toast.LENGTH_SHORT).show()
+                        }
+
+                        progressbar_item.visibility = View.GONE
                         login_layout.visibility = View.VISIBLE
                     }
                 }

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import boyoung.myposting.R
 import boyoung.myposting.utilities.Constants
 import boyoung.myposting.utilities.UploadHelper
+import com.amplifyframework.api.graphql.model.ModelMutation
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.datastore.generated.model.PostStatus
@@ -27,6 +28,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.lang.StringBuilder
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class UploadActivity : AppCompatActivity() {
     private val context = this
@@ -40,28 +43,28 @@ class UploadActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_upload)
-        back_tv.setOnClickListener {
+        back_tv_upload.setOnClickListener {
             finish()
         }
-        savePost_tv.setOnClickListener {
+        savePost_tv_upload.setOnClickListener {
             CoroutineScope(Main).launch {
-                if (title_et_post.text.toString() == "") {
+                if (title_et_upload.text.toString() == "") {
                     Toast.makeText(context, "Title should not be empty", Toast.LENGTH_SHORT).show()
                 } else {
-                    val title = title_et_post.text.toString()
+                    val title = title_et_upload.text.toString()
                     val imageKey = if (hasImage) {
                         getImageKey(title)
                     } else {
                         null
                     }
-                    val content = content_et_post.text.toString()
+                    val content = content_et_upload.text.toString()
                     post(file, title, content, PostStatus.PUBLISHED, imageKey)
                     finish()
                 }
             }
 
         }
-        add_photo_tv.setOnClickListener {
+        add_photo_tv_upload.setOnClickListener {
             getImage()
         }
     }
@@ -121,7 +124,7 @@ class UploadActivity : AppCompatActivity() {
             }
             Glide.with(this)
                 .load(data?.data)
-                .into(image_iv_post)
+                .into(image_iv_upload)
             hasImage = true
         }
         super.onActivityResult(requestCode, resultCode, data)
@@ -142,14 +145,16 @@ class UploadActivity : AppCompatActivity() {
             val post = Post.builder()
                 .username(getUsername())
                 .title(title)
-                .contents(content)
                 .status(status)
+                .date(todayDate())
+                .contents(content)
                 .image(imageKey)
                 .build()
 
-            Amplify.DataStore.save(post,
-                { Log.i("MyAmplifyApp", "Saved a post.") },
-                { Log.e("MyAmplifyApp", "Save failed.", it) }
+            Amplify.API.mutate(
+                ModelMutation.create(post),
+                { response -> Log.i("MyAmplifyApp", "Todo with id: " + response.data.id) },
+                { error -> Log.e("MyAmplifyApp", "Create failed", error) }
             )
         }
 
@@ -163,6 +168,9 @@ class UploadActivity : AppCompatActivity() {
         builder.append("_$title.jpg")
 
         return@withContext builder.toString()
+    }
+    private fun todayDate(): String {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy. MM. dd. HH:mm")).toString()
     }
 
     private suspend fun imageToS3(file: File?, imageKey: String) = withContext(IO) {
@@ -187,4 +195,5 @@ class UploadActivity : AppCompatActivity() {
             )
         }
     }
+
 }
