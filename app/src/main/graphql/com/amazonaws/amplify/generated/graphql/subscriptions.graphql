@@ -107,6 +107,33 @@ subscription OnDeleteProfile {
     updatedAt
   }
 }
+subscription OnCreatePostPermission {
+  onCreatePostPermission {
+    id
+    username
+    permission
+    createdAt
+    updatedAt
+  }
+}
+subscription OnUpdatePostPermission {
+  onUpdatePostPermission {
+    id
+    username
+    permission
+    createdAt
+    updatedAt
+  }
+}
+subscription OnDeletePostPermission {
+  onDeletePostPermission {
+    id
+    username
+    permission
+    createdAt
+    updatedAt
+  }
+}
 subscription OnCreateComment {
   onCreateComment {
     id

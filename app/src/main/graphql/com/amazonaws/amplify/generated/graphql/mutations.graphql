@@ -125,6 +125,42 @@ mutation DeleteProfile(
     updatedAt
   }
 }
+mutation CreatePostPermission(
+  $input: CreatePostPermissionInput!
+  $condition: ModelPostPermissionConditionInput
+) {
+  createPostPermission(input: $input, condition: $condition) {
+    id
+    username
+    permission
+    createdAt
+    updatedAt
+  }
+}
+mutation UpdatePostPermission(
+  $input: UpdatePostPermissionInput!
+  $condition: ModelPostPermissionConditionInput
+) {
+  updatePostPermission(input: $input, condition: $condition) {
+    id
+    username
+    permission
+    createdAt
+    updatedAt
+  }
+}
+mutation DeletePostPermission(
+  $input: DeletePostPermissionInput!
+  $condition: ModelPostPermissionConditionInput
+) {
+  deletePostPermission(input: $input, condition: $condition) {
+    id
+    username
+    permission
+    createdAt
+    updatedAt
+  }
+}
 mutation CreateComment(
   $input: CreateCommentInput!
   $condition: ModelCommentConditionInput

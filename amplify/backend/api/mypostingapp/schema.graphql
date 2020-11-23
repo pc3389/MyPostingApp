@@ -18,6 +18,11 @@ type Profile @model {
     backgroundImage: String
 }
 
+type PostPermission @model {
+    username: String!
+    permission: Boolean!
+}
+
 type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
     id: ID!
     username: String!

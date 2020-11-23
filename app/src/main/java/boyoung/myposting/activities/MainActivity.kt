@@ -11,13 +11,14 @@ import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import boyoung.myposting.PostAdapters
+import boyoung.myposting.adapters.MainAdapters
 import boyoung.myposting.R
 import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Post
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
@@ -28,22 +29,21 @@ class MainActivity : AppCompatActivity() {
     private val context = this
 
     private val posts: ArrayList<Post> = ArrayList()
-    private lateinit var linearLayoutManager: LinearLayoutManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        linearLayoutManager = LinearLayoutManager(context)
-        post_rc.layoutManager = linearLayoutManager
-        post_rc.adapter = PostAdapters(posts, context)
+        val linearLayoutManager = LinearLayoutManager(context)
+        main_rc.layoutManager = linearLayoutManager
+        main_rc.adapter = MainAdapters(posts, context)
 
         button_add.setOnClickListener {
             toPostActivity()
         }
+
+        turnOnProgressBar()
         val a = CoroutineScope(Main).launch {
-            itemsswipetorefresh.visibility = View.INVISIBLE
-            progressbar_main.visibility = View.VISIBLE
             queryPost()
         }
 
@@ -57,13 +57,13 @@ class MainActivity : AppCompatActivity() {
 
         itemsswipetorefresh.setOnRefreshListener {
             a.cancel()
+            turnOnProgressBar()
             CoroutineScope(Main).launch {
-                itemsswipetorefresh.visibility = View.INVISIBLE
-                progressbar_main.visibility = View.VISIBLE
                 posts.clear()
                 queryPost()
             }
         }
+
     }
 
     private fun toPostActivity() {
@@ -80,23 +80,22 @@ class MainActivity : AppCompatActivity() {
                 for (post in response.data) {
                     posts.add(post)
                     Log.i("MyAmplifyApp", post.title)
-                    runOnUiThread {
-                        post_rc.adapter = PostAdapters(posts, context)
+                }
+                CoroutineScope(Main).launch {
+                    withContext(Default) {
                         posts.sortByDescending { it.date }
+                    }
+                    runOnUiThread {
+                        main_rc.adapter = MainAdapters(posts, context)
                         itemsswipetorefresh.isRefreshing = false
+                        turnOffProgressBar()
                     }
                 }
-                runOnUiThread {
-                    itemsswipetorefresh.visibility = View.VISIBLE
-                    progressbar_main.visibility = View.GONE
-                }
-
             },
             { error ->
                 Log.e("MyAmplifyApp", "Query failure", error)
                 runOnUiThread {
-                    itemsswipetorefresh.visibility = View.VISIBLE
-                    progressbar_main.visibility = View.GONE
+                    turnOffProgressBar()
                 }
             }
         )
@@ -126,6 +125,12 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        val menuItem = menu?.findItem(R.id.action_providePostPermission)
+        menuItem?.isVisible = getUsername() == "pc3389"
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_settings -> {
@@ -144,9 +149,28 @@ class MainActivity : AppCompatActivity() {
                 }
                 return true
             }
+
+            R.id.action_providePostPermission -> {
+                val intent = Intent(this, ProvidingPostPermissionActivity::class.java)
+                startActivity(intent)
+                return true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
+    private fun getUsername(): String {
+        return Amplify.Auth.currentUser.username
+    }
+    private fun turnOnProgressBar() {
+        itemsswipetorefresh.visibility = View.INVISIBLE
+        main_rc.visibility = View.GONE
+        progressbar_main.visibility = View.VISIBLE
+    }
 
+    private fun turnOffProgressBar() {
+        itemsswipetorefresh.visibility = View.VISIBLE
+        main_rc.visibility = View.VISIBLE
+        progressbar_main.visibility = View.GONE
+    }
 }

@@ -12,12 +12,15 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.PopupMenu
+import androidx.recyclerview.widget.LinearLayoutManager
 import boyoung.myposting.R
+import boyoung.myposting.adapters.PostAdapter
 import boyoung.myposting.utilities.Constants
 import boyoung.myposting.utilities.UploadHelper
 import com.amplifyframework.api.graphql.model.ModelMutation
 import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.core.Amplify
+import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.datastore.generated.model.Profile
 import com.amplifyframework.storage.StorageException
 import com.amplifyframework.storage.options.StorageUploadFileOptions
@@ -41,6 +44,8 @@ class ProfileActivity : AppCompatActivity() {
     companion object {
         private var file: File? = null
         private val profiles = ArrayList<Profile>()
+        private val posts: ArrayList<Post> = ArrayList()
+        private var postNumber = 0
     }
 
 
@@ -49,8 +54,10 @@ class ProfileActivity : AppCompatActivity() {
         setContentView(R.layout.activity_profile)
 
         CoroutineScope(Main).launch {
+            val username = getUsername()
             showProgressBar()
             queryProfile()
+            setupRecycler(username)
         }
 
         camera_profile.setOnClickListener {
@@ -97,23 +104,10 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
+
         back_bt_update.setOnClickListener {
             onBackPressed()
         }
-    }
-
-    private fun showEditProfile() {
-        name_profile.visibility = View.GONE
-        name_et_profile.visibility = View.VISIBLE
-        save_and_cancel.visibility = View.VISIBLE
-        camera_profile.visibility = View.VISIBLE
-    }
-
-    private fun hideEditProfile() {
-        name_profile.visibility = View.VISIBLE
-        name_et_profile.visibility = View.GONE
-        save_and_cancel.visibility = View.GONE
-        camera_profile.visibility = View.GONE
     }
 
     private suspend fun queryProfile() {
@@ -129,6 +123,10 @@ class ProfileActivity : AppCompatActivity() {
                                 updateUI(profiles[0])
                             }
                         }
+                        runOnUiThread {
+                            hideProgressBar()
+                        }
+
                     }
                 },
                 { error -> Log.e("MyAmplifyApp", "Query failure", error) }
@@ -291,15 +289,6 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-    private fun showProgressBar() {
-        progressbar_profile.visibility = View.VISIBLE
-        layout_all_profile.visibility = View.GONE
-    }
-    private fun hideProgressBar() {
-        progressbar_profile.visibility = View.GONE
-        layout_all_profile.visibility = View.VISIBLE
-    }
-
     private fun getImageFromGallery() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) ==
@@ -339,11 +328,206 @@ class ProfileActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
+    private fun setupRecycler(username: String) {
+        val linearLayoutManager = LinearLayoutManager(context)
+        profile_rc.layoutManager = linearLayoutManager
+        CoroutineScope(Main).launch {
+            queryPost(username)
+        }
+    }
+
+    private suspend fun queryPost(username: String) = withContext(Dispatchers.IO) {
+        Amplify.API.query(
+            ModelQuery.list(Post::class.java, Post.USERNAME.contains(username)),
+            { response ->
+                posts.clear()
+                for (post in response.data) {
+                    posts.add(post)
+                }
+                Log.i("MyAmplifyApp", "Posts added to RecyclerView")
+                CoroutineScope(Main).launch {
+                    withContext(Dispatchers.Default) {
+                        posts.sortByDescending { it.date }
+                    }
+                    withContext(Main) {
+                        runOnUiThread {
+                            val fivePosts = getFivePosts(posts)
+                            profile_rc.adapter = PostAdapter(fivePosts, context, username)
+                            pageHelper(username, posts)
+                        }
+                    }
+                }
+            },
+            { error ->
+                Log.e("MyAmplifyApp", "Query failure", error)
+            }
+        )
+    }
+
+
+    private fun getFivePosts(posts: ArrayList<Post>): ArrayList<Post> {
+        val end = postNumber + 5
+        val fivePosts: ArrayList<Post> = ArrayList()
+        while (postNumber < end && posts.size > postNumber) {
+            fivePosts.add(posts[postNumber])
+            postNumber += 1
+        }
+        if(postNumber % 5 != 0) {
+            postNumber += 5 - postNumber % 5
+        }
+        return fivePosts
+    }
+
+    private fun pageHelper(username: String?, posts: ArrayList<Post>) {
+        if (postNumber - 5 <= 0) {
+            Glide.with(context)
+                .load(R.drawable.previous_page_unavailable_24)
+                .listener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(
+                        e: GlideException?,
+                        model: Any?,
+                        target: Target<Drawable>?,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        return false
+                    }
+
+                    override fun onResourceReady(
+                        resource: Drawable?,
+                        model: Any?,
+                        target: Target<Drawable>?,
+                        dataSource: DataSource?,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        previous_page_frame_profile.isClickable = false
+                        return false
+                    }
+                })
+                .into(previous_page_image_profile)
+        } else {
+            Glide.with(context)
+                .load(R.drawable.previous_page_available)
+                .listener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(
+                        e: GlideException?,
+                        model: Any?,
+                        target: Target<Drawable>?,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        return false
+                    }
+
+                    override fun onResourceReady(
+                        resource: Drawable?,
+                        model: Any?,
+                        target: Target<Drawable>?,
+                        dataSource: DataSource?,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        previous_page_frame_profile.setOnClickListener {
+                            if (username != null) {
+                                postNumber -= 10
+                                val fivePosts = getFivePosts(posts)
+                                profile_rc.adapter = PostAdapter(fivePosts, context, username)
+                                pageHelper(username, posts)
+                            }
+                        }
+                        return false
+                    }
+                })
+                .into(previous_page_image_profile)
+        }
+        if (postNumber >= posts.size) {
+            Glide.with(context)
+                .load(R.drawable.next_page_unavailable_24)
+                .listener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(
+                        e: GlideException?,
+                        model: Any?,
+                        target: Target<Drawable>?,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        return false
+                    }
+
+                    override fun onResourceReady(
+                        resource: Drawable?,
+                        model: Any?,
+                        target: Target<Drawable>?,
+                        dataSource: DataSource?,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        next_page_frame_profile.isClickable = false
+                        return false
+                    }
+                })
+                .into(next_page_image_profile)
+        } else {
+            Glide.with(context)
+                .load(R.drawable.next_page_available_24)
+                .listener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(
+                        e: GlideException?,
+                        model: Any?,
+                        target: Target<Drawable>?,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        return false
+                    }
+
+                    override fun onResourceReady(
+                        resource: Drawable?,
+                        model: Any?,
+                        target: Target<Drawable>?,
+                        dataSource: DataSource?,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        next_page_frame_profile.setOnClickListener {
+                            if (username != null) {
+                                val fivePosts = getFivePosts(posts)
+                                profile_rc.adapter = PostAdapter(fivePosts, context, username)
+                                pageHelper(username, posts)
+                            }
+                        }
+                        return false
+                    }
+                })
+                .into(next_page_image_profile)
+        }
+    }
+
     override fun onBackPressed() {
         if (save_and_cancel.visibility == View.VISIBLE) {
             hideEditProfile()
             return
+        } else {
+            finish()
         }
         super.onBackPressed()
+    }
+
+
+    private fun showEditProfile() {
+        name_profile.visibility = View.GONE
+        name_et_profile.visibility = View.VISIBLE
+        save_and_cancel.visibility = View.VISIBLE
+        camera_profile.visibility = View.VISIBLE
+    }
+
+    private fun hideEditProfile() {
+        name_profile.visibility = View.VISIBLE
+        name_et_profile.visibility = View.GONE
+        save_and_cancel.visibility = View.GONE
+        camera_profile.visibility = View.GONE
+    }
+
+    private fun showProgressBar() {
+        progressbar_profile.visibility = View.VISIBLE
+        layout_all_profile.visibility = View.GONE
+    }
+
+    private fun hideProgressBar() {
+        progressbar_profile.visibility = View.GONE
+        layout_all_profile.visibility = View.VISIBLE
     }
 }

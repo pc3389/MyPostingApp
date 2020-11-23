@@ -35,13 +35,9 @@
         app:layout_constraintTop_toBottomOf="@id/button_add" >
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/post_rc"
+            android:id="@+id/main_rc"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

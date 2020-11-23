@@ -7,4 +7,6 @@
     <string name="sign_out">Sign Out</string>
     <string name="back_button">Back Button</string>
     <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="give_permission">Give Permission</string>
 </resources>

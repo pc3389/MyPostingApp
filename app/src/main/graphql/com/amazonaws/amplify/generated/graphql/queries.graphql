@@ -77,6 +77,31 @@ query ListProfiles(
     nextToken
   }
 }
+query GetPostPermission($id: ID!) {
+  getPostPermission(id: $id) {
+    id
+    username
+    permission
+    createdAt
+    updatedAt
+  }
+}
+query ListPostPermissions(
+  $filter: ModelPostPermissionFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listPostPermissions(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      username
+      permission
+      createdAt
+      updatedAt
+    }
+    nextToken
+  }
+}
 query GetComment($id: ID!) {
   getComment(id: $id) {
     id

@@ -12,6 +12,7 @@ class Constants {
         const val POST_TITLE = "postTitle"
         const val POST_CONTENT = "postContent"
         const val PROFILE_IMAGE_PATH = "profileImagePath"
+        const val POST_USERNAME = "username"
     }
 
 }

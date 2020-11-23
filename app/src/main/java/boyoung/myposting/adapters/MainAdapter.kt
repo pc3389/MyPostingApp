@@ -1,4 +1,4 @@
-package boyoung.myposting
+package boyoung.myposting.adapters
 
 import android.content.Context
 import android.content.Intent
@@ -11,6 +11,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
+import boyoung.myposting.R
+import boyoung.myposting.activities.MainActivity
 import boyoung.myposting.activities.PostActivity
 import boyoung.myposting.utilities.Constants
 import com.amplifyframework.core.Amplify
@@ -22,7 +24,9 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import kotlinx.android.synthetic.main.post_list_item.view.*
+import kotlinx.android.synthetic.main.activity_main.view.*
+import kotlinx.android.synthetic.main.main_list_item.view.*
+import kotlinx.android.synthetic.main.post_list_item.view.layout_item
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -32,8 +36,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.lang.StringBuilder
 
-class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
-    RecyclerView.Adapter<PostAdapters.ViewHolder>() {
+class MainAdapters(private val items: ArrayList<Post>, val context: Context) :
+    RecyclerView.Adapter<MainAdapters.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         // Holds the TextView that will add each animal to
@@ -60,8 +64,7 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val a = CoroutineScope(Main).launch {
-            holder.progressbar.visibility = View.VISIBLE
-            holder.itemLayout.visibility = View.GONE
+            turnOnProgressBar(holder)
             val username = items[position].username
             val name = if (items[position].nickName == null) {
                 username
@@ -93,9 +96,8 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
             if (items[position].image != null) {
                 loadImageFromS3(filepath, image, holder)
             } else {
-                holder.progressbar.visibility = View.GONE
                 holder.imageImageView.visibility = View.GONE
-                holder.itemLayout.visibility = View.VISIBLE
+                turnOffProgressBar(holder)
             }
             holder.itemView.setOnClickListener {
                 val intent = Intent(context, PostActivity::class.java).apply {
@@ -108,6 +110,7 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
                     putExtra(Constants.POST_TITLE, title)
                     putExtra(Constants.POST_CONTENT, content)
                     putExtra(Constants.PROFILE_IMAGE_PATH, profileImagePath)
+                    putExtra(Constants.POST_USERNAME, username)
                 }
                 context.startActivity(intent)
             }
@@ -132,9 +135,8 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
                                         target: Target<Drawable>?,
                                         isFirstResource: Boolean
                                     ): Boolean {
-                                        holder.progressbar.visibility = View.GONE
+                                        turnOffProgressBar(holder)
                                         holder.imageImageView.visibility = View.VISIBLE
-                                        holder.itemLayout.visibility = View.VISIBLE
                                         return false
                                     }
 
@@ -145,9 +147,8 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
                                         dataSource: DataSource?,
                                         isFirstResource: Boolean
                                     ): Boolean {
-                                        holder.progressbar.visibility = View.GONE
+                                        turnOffProgressBar(holder)
                                         holder.imageImageView.visibility = View.VISIBLE
-                                        holder.itemLayout.visibility = View.VISIBLE
                                         return false
                                     }
                                 })
@@ -159,9 +160,8 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
                                 "Download Failure",
                                 error
                             )
-                            holder.progressbar.visibility = View.GONE
-                            holder.imageImageView.visibility = View.VISIBLE
-                            holder.itemLayout.visibility = View.VISIBLE
+                            turnOffProgressBar(holder)
+                            holder.imageImageView.visibility = View.GONE
                         }
                     )
                 }
@@ -177,9 +177,8 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
                                 target: Target<Drawable>?,
                                 isFirstResource: Boolean
                             ): Boolean {
-                                holder.progressbar.visibility = View.GONE
-                                holder.imageImageView.visibility = View.VISIBLE
-                                holder.itemLayout.visibility = View.VISIBLE
+                                turnOffProgressBar(holder)
+                                holder.imageImageView.visibility = View.GONE
                                 return false
                             }
 
@@ -190,9 +189,8 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
                                 dataSource: DataSource?,
                                 isFirstResource: Boolean
                             ): Boolean {
-                                holder.progressbar.visibility = View.GONE
+                                turnOffProgressBar(holder)
                                 holder.imageImageView.visibility = View.VISIBLE
-                                holder.itemLayout.visibility = View.VISIBLE
                                 return false
                             }
                         })
@@ -205,13 +203,11 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
                 }
                 if (glideWork.isActive) {
                     glideWork.cancel()
-                    holder.progressbar.visibility = View.GONE
+                    turnOffProgressBar(holder)
                     holder.imageImageView.visibility = View.VISIBLE
-                    holder.itemLayout.visibility = View.VISIBLE
                 } else {
-                    holder.progressbar.visibility = View.GONE
+                    turnOffProgressBar(holder)
                     holder.imageImageView.visibility = View.VISIBLE
-                    holder.itemLayout.visibility = View.VISIBLE
                 }
             }
         }
@@ -285,9 +281,20 @@ class PostAdapters(private val items: ArrayList<Post>, val context: Context) :
             while (glideWork.isActive && time < 5) {
                 delay(200L)
                 time += 1
+                if(time == 5) {
+                    glideWork.cancel()
+                }
             }
-            glideWork.cancel()
         }
+    }
+    private fun turnOnProgressBar(holder: ViewHolder) {
+        holder.progressbar.visibility = View.VISIBLE
+        holder.itemLayout.visibility = View.GONE
+    }
+
+    private fun turnOffProgressBar(holder: ViewHolder) {
+        holder.progressbar.visibility = View.GONE
+        holder.itemLayout.visibility = View.VISIBLE
     }
     private suspend fun getProfileImageKey(username: String): String = withContext(Main) {
         val builder = StringBuilder()

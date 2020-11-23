@@ -19,7 +19,7 @@ import static com.amplifyframework.core.model.query.predicate.QueryField.field;
 /** This is an auto generated class representing the Post type in your schema. */
 @SuppressWarnings("all")
 @ModelConfig(pluralName = "Posts")
-public final class Post implements Model  {
+public final class Post implements Model {
   public static final QueryField ID = field("id");
   public static final QueryField USERNAME = field("username");
   public static final QueryField TITLE = field("title");
