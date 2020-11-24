@@ -1,17 +1,112 @@
 # this is an auto generated file. This will be overwritten
+mutation CreateProfile(
+  $input: CreateProfileInput!
+  $condition: ModelProfileConditionInput
+) {
+  createProfile(input: $input, condition: $condition) {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
+    posts {
+      items {
+        id
+        title
+        status
+        date
+        profileID
+        contents
+        image
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+mutation UpdateProfile(
+  $input: UpdateProfileInput!
+  $condition: ModelProfileConditionInput
+) {
+  updateProfile(input: $input, condition: $condition) {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
+    posts {
+      items {
+        id
+        title
+        status
+        date
+        profileID
+        contents
+        image
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+mutation DeleteProfile(
+  $input: DeleteProfileInput!
+  $condition: ModelProfileConditionInput
+) {
+  deleteProfile(input: $input, condition: $condition) {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
+    posts {
+      items {
+        id
+        title
+        status
+        date
+        profileID
+        contents
+        image
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
 mutation CreatePost(
   $input: CreatePostInput!
   $condition: ModelPostConditionInput
 ) {
   createPost(input: $input, condition: $condition) {
     id
-    username
     title
     status
     date
+    profileID
     contents
-    nickName
     image
+    profile {
+      id
+      username
+      nickname
+      profileImage
+      backgroundImage
+      posts {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
     comments {
       items {
         id
@@ -33,13 +128,24 @@ mutation UpdatePost(
 ) {
   updatePost(input: $input, condition: $condition) {
     id
-    username
     title
     status
     date
+    profileID
     contents
-    nickName
     image
+    profile {
+      id
+      username
+      nickname
+      profileImage
+      backgroundImage
+      posts {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
     comments {
       items {
         id
@@ -61,13 +167,24 @@ mutation DeletePost(
 ) {
   deletePost(input: $input, condition: $condition) {
     id
-    username
     title
     status
     date
+    profileID
     contents
-    nickName
     image
+    profile {
+      id
+      username
+      nickname
+      profileImage
+      backgroundImage
+      posts {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
     comments {
       items {
         id
@@ -79,48 +196,6 @@ mutation DeletePost(
       }
       nextToken
     }
-    createdAt
-    updatedAt
-  }
-}
-mutation CreateProfile(
-  $input: CreateProfileInput!
-  $condition: ModelProfileConditionInput
-) {
-  createProfile(input: $input, condition: $condition) {
-    id
-    username
-    nickname
-    profileImage
-    backgroundImage
-    createdAt
-    updatedAt
-  }
-}
-mutation UpdateProfile(
-  $input: UpdateProfileInput!
-  $condition: ModelProfileConditionInput
-) {
-  updateProfile(input: $input, condition: $condition) {
-    id
-    username
-    nickname
-    profileImage
-    backgroundImage
-    createdAt
-    updatedAt
-  }
-}
-mutation DeleteProfile(
-  $input: DeleteProfileInput!
-  $condition: ModelProfileConditionInput
-) {
-  deleteProfile(input: $input, condition: $condition) {
-    id
-    username
-    nickname
-    profileImage
-    backgroundImage
     createdAt
     updatedAt
   }
@@ -171,13 +246,21 @@ mutation CreateComment(
     postID
     post {
       id
-      username
       title
       status
       date
+      profileID
       contents
-      nickName
       image
+      profile {
+        id
+        username
+        nickname
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
       comments {
         nextToken
       }
@@ -199,13 +282,21 @@ mutation UpdateComment(
     postID
     post {
       id
-      username
       title
       status
       date
+      profileID
       contents
-      nickName
       image
+      profile {
+        id
+        username
+        nickname
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
       comments {
         nextToken
       }
@@ -227,13 +318,21 @@ mutation DeleteComment(
     postID
     post {
       id
-      username
       title
       status
       date
+      profileID
       contents
-      nickName
       image
+      profile {
+        id
+        username
+        nickname
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
       comments {
         nextToken
       }

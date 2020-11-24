@@ -12,7 +12,6 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import boyoung.myposting.R
-import boyoung.myposting.activities.MainActivity
 import boyoung.myposting.activities.PostActivity
 import boyoung.myposting.utilities.Constants
 import com.amplifyframework.core.Amplify
@@ -63,13 +62,13 @@ class MainAdapters(private val items: ArrayList<Post>, val context: Context) :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val a = CoroutineScope(Main).launch {
+        CoroutineScope(Main).launch {
             turnOnProgressBar(holder)
-            val username = items[position].username
-            val name = if (items[position].nickName == null) {
+            val username = items[position].profile.username
+            val name = if (items[position].profile.nickname == null) {
                 username
             } else {
-                items[position].nickName
+                items[position].profile.nickname
             }
 
             holder.nameTextView.text = name
@@ -101,16 +100,15 @@ class MainAdapters(private val items: ArrayList<Post>, val context: Context) :
             }
             holder.itemView.setOnClickListener {
                 val intent = Intent(context, PostActivity::class.java).apply {
+                    putExtra(Constants.PROFILE_ID, items[position].profile.id)
                     putExtra(Constants.POST_ID, items[position].id)
                     putExtra(Constants.POST_DATE, date)
-                    if (File(filepath).exists()) {
-                        putExtra(Constants.POST_IMAGE, filepath)
-                    }
-                    putExtra(Constants.POST_NAME, name)
+                    putExtra(Constants.POST_IMAGE, image)
+                    putExtra(Constants.PROFILE_USERNAME, items[position].profile.username)
+                    putExtra(Constants.PROFILE_NICKNAME, items[position].profile.nickname)
                     putExtra(Constants.POST_TITLE, title)
-                    putExtra(Constants.POST_CONTENT, content)
-                    putExtra(Constants.PROFILE_IMAGE_PATH, profileImagePath)
-                    putExtra(Constants.POST_USERNAME, username)
+                    putExtra(Constants.POST_CONTENT, items[position].contents)
+                    putExtra(Constants.PROFILE_IMAGE, items[position].profile.profileImage)
                 }
                 context.startActivity(intent)
             }
@@ -212,15 +210,50 @@ class MainAdapters(private val items: ArrayList<Post>, val context: Context) :
             }
         }
 
-    private suspend fun loadProfileImage(filePath: String, imageKey: String, holder: ViewHolder) = withContext(Main) {
-        val file = File(filePath)
-        if (!file.exists()) {
-            Amplify.Storage.downloadFile(
-                imageKey,
-                file,
-                { result: StorageDownloadFileResult ->
+    private suspend fun loadProfileImage(filePath: String, imageKey: String, holder: ViewHolder) =
+        withContext(Main) {
+            val file = File(filePath)
+            if (!file.exists()) {
+                Amplify.Storage.downloadFile(
+                    imageKey,
+                    file,
+                    { result: StorageDownloadFileResult ->
+                        Glide.with(context)
+                            .load(result.file)
+                            .listener(object : RequestListener<Drawable> {
+                                override fun onLoadFailed(
+                                    e: GlideException?,
+                                    model: Any?,
+                                    target: Target<Drawable>?,
+                                    isFirstResource: Boolean
+                                ): Boolean {
+                                    return false
+                                }
+
+                                override fun onResourceReady(
+                                    resource: Drawable?,
+                                    model: Any?,
+                                    target: Target<Drawable>?,
+                                    dataSource: DataSource?,
+                                    isFirstResource: Boolean
+                                ): Boolean {
+                                    return false
+                                }
+                            })
+                            .into(holder.profileImageView)
+                    },
+                    { error: StorageException? ->
+                        Log.e(
+                            "MyAmplifyApp",
+                            "Download Failure",
+                            error
+                        )
+                    }
+                )
+            } else {
+                val glideWork = CoroutineScope(Main).launch {
                     Glide.with(context)
-                        .load(result.file)
+                        .load(file)
                         .listener(object : RequestListener<Drawable> {
                             override fun onLoadFailed(
                                 e: GlideException?,
@@ -242,51 +275,18 @@ class MainAdapters(private val items: ArrayList<Post>, val context: Context) :
                             }
                         })
                         .into(holder.profileImageView)
-                },
-                { error: StorageException? ->
-                    Log.e(
-                        "MyAmplifyApp",
-                        "Download Failure",
-                        error
-                    )
                 }
-            )
-        } else {
-            val glideWork = CoroutineScope(Main).launch {
-                Glide.with(context)
-                    .load(file)
-                    .listener(object : RequestListener<Drawable> {
-                        override fun onLoadFailed(
-                            e: GlideException?,
-                            model: Any?,
-                            target: Target<Drawable>?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            return false
-                        }
-
-                        override fun onResourceReady(
-                            resource: Drawable?,
-                            model: Any?,
-                            target: Target<Drawable>?,
-                            dataSource: DataSource?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            return false
-                        }
-                    })
-                    .into(holder.profileImageView)
-            }
-            var time = 0
-            while (glideWork.isActive && time < 5) {
-                delay(200L)
-                time += 1
-                if(time == 5) {
-                    glideWork.cancel()
+                var time = 0
+                while (glideWork.isActive && time < 5) {
+                    delay(200L)
+                    time += 1
+                    if (time == 5) {
+                        glideWork.cancel()
+                    }
                 }
             }
         }
-    }
+
     private fun turnOnProgressBar(holder: ViewHolder) {
         holder.progressbar.visibility = View.VISIBLE
         holder.itemLayout.visibility = View.GONE
@@ -296,6 +296,7 @@ class MainAdapters(private val items: ArrayList<Post>, val context: Context) :
         holder.progressbar.visibility = View.GONE
         holder.itemLayout.visibility = View.VISIBLE
     }
+
     private suspend fun getProfileImageKey(username: String): String = withContext(Main) {
         val builder = StringBuilder()
         builder.append(username)

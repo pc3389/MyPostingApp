@@ -1,14 +1,71 @@
 # this is an auto generated file. This will be overwritten
+query GetProfile($id: ID!) {
+  getProfile(id: $id) {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
+    posts {
+      items {
+        id
+        title
+        status
+        date
+        profileID
+        contents
+        image
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+query ListProfiles(
+  $filter: ModelProfileFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listProfiles(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      username
+      nickname
+      profileImage
+      backgroundImage
+      posts {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+    nextToken
+  }
+}
 query GetPost($id: ID!) {
   getPost(id: $id) {
     id
-    username
     title
     status
     date
+    profileID
     contents
-    nickName
     image
+    profile {
+      id
+      username
+      nickname
+      profileImage
+      backgroundImage
+      posts {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
     comments {
       items {
         id
@@ -32,45 +89,24 @@ query ListPosts(
   listPosts(filter: $filter, limit: $limit, nextToken: $nextToken) {
     items {
       id
-      username
       title
       status
       date
+      profileID
       contents
-      nickName
       image
+      profile {
+        id
+        username
+        nickname
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
       comments {
         nextToken
       }
-      createdAt
-      updatedAt
-    }
-    nextToken
-  }
-}
-query GetProfile($id: ID!) {
-  getProfile(id: $id) {
-    id
-    username
-    nickname
-    profileImage
-    backgroundImage
-    createdAt
-    updatedAt
-  }
-}
-query ListProfiles(
-  $filter: ModelProfileFilterInput
-  $limit: Int
-  $nextToken: String
-) {
-  listProfiles(filter: $filter, limit: $limit, nextToken: $nextToken) {
-    items {
-      id
-      username
-      nickname
-      profileImage
-      backgroundImage
       createdAt
       updatedAt
     }
@@ -109,13 +145,21 @@ query GetComment($id: ID!) {
     postID
     post {
       id
-      username
       title
       status
       date
+      profileID
       contents
-      nickName
       image
+      profile {
+        id
+        username
+        nickname
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
       comments {
         nextToken
       }
@@ -139,12 +183,11 @@ query ListComments(
       postID
       post {
         id
-        username
         title
         status
         date
+        profileID
         contents
-        nickName
         image
         createdAt
         updatedAt

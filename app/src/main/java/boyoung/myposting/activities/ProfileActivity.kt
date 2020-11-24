@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.PopupMenu
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import boyoung.myposting.R
 import boyoung.myposting.adapters.PostAdapter
@@ -33,6 +34,7 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import kotlinx.android.synthetic.main.activity_profile.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import java.io.File
@@ -46,6 +48,7 @@ class ProfileActivity : AppCompatActivity() {
         private val profiles = ArrayList<Profile>()
         private val posts: ArrayList<Post> = ArrayList()
         private var postNumber = 0
+        private var profileUpdated = false
     }
 
 
@@ -53,36 +56,45 @@ class ProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
+        val profileId = intent.getStringExtra(Constants.PROFILE_ID)
         CoroutineScope(Main).launch {
-            val username = getUsername()
             showProgressBar()
-            queryProfile()
-            setupRecycler(username)
+            val a = CoroutineScope(IO).launch {
+                if (profileId != null) {
+                    queryProfile(profileId)
+                }
+            }
+            var i = 0
+            while (!profileUpdated && i < 20) {
+                delay(100L)
+                i++
+            }
+            if (a.isActive) {
+                a.cancel()
+            }
+            if (profileUpdated) {
+                profileUpdated = if (profiles.size == 0) {
+                    Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
+                    false
+                } else {
+                    setupRecycler(profiles[0].id)
+                    false
+                }
+            }
+
         }
 
         camera_profile.setOnClickListener {
             getImageFromGallery()
         }
 
-        menu_bt_profile.setOnClickListener {
-            val popupMenu = PopupMenu(this@ProfileActivity, menu_bt_profile)
-            popupMenu.menuInflater.inflate(R.menu.menu_profile, popupMenu.menu)
-            popupMenu.setOnMenuItemClickListener {
-                if (it.itemId == R.id.action_edit) {
-                    val name = name_profile.text.toString()
-                    name_et_profile.setText(name)
-                    showEditProfile()
-                }
-                true
-            }
-            popupMenu.show()
-        }
+        setupMenu()
 
-        menu_bt_cancel_update.setOnClickListener {
+        cancel_bt_image_update.setOnClickListener {
             hideEditProfile()
         }
 
-        menu_bt_save_update.setOnClickListener {
+        save_bt_image_update.setOnClickListener {
             CoroutineScope(Main).launch {
 
                 val username = getUsername()
@@ -99,7 +111,9 @@ class ProfileActivity : AppCompatActivity() {
 
                 saveProfile(file, username, name, imageKey)
                 showProgressBar()
-                queryProfile()
+                if (profileId != null) {
+                    queryProfile(profileId)
+                }
                 hideEditProfile()
             }
         }
@@ -110,23 +124,39 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun queryProfile() {
-        withContext(Dispatchers.IO) {
+    private fun setupMenu() {
+        menu_bt_profile.setOnClickListener {
+            val popupMenu = PopupMenu(this@ProfileActivity, menu_bt_profile)
+            popupMenu.menuInflater.inflate(R.menu.menu_profile, popupMenu.menu)
+            popupMenu.setOnMenuItemClickListener {
+                if (it.itemId == R.id.action_edit) {
+                    val name = name_profile.text.toString()
+                    name_et_profile.setText(name)
+                    showEditProfile()
+                }
+                true
+            }
+            popupMenu.show()
+        }
+    }
+
+    private suspend fun queryProfile(profileId: String) {
+        withContext(IO) {
             Amplify.API.query(
-                ModelQuery.list(Profile::class.java, Profile.USERNAME.contains(getUsername())),
+                ModelQuery.list(Profile::class.java, Profile.ID.contains(profileId)),
                 { response ->
                     for (profile in response.data) {
                         profiles.add(profile)
                         Log.i("MyAmplifyApp", profile.username)
-                        if (profiles.isNotEmpty()) {
-                            CoroutineScope(Main).launch {
-                                updateUI(profiles[0])
-                            }
+                    }
+                    if (profiles.isNotEmpty()) {
+                        CoroutineScope(Main).launch {
+                            updateUI(profiles[0])
                         }
-                        runOnUiThread {
-                            hideProgressBar()
-                        }
-
+                    }
+                    runOnUiThread {
+                        hideProgressBar()
+                        profileUpdated = true
                     }
                 },
                 { error -> Log.e("MyAmplifyApp", "Query failure", error) }
@@ -138,9 +168,9 @@ class ProfileActivity : AppCompatActivity() {
     private suspend fun updateUI(profile: Profile) = withContext(Main) {
         name_profile.text = profile.nickname
         if (profile.profileImage != null && !isDestroyed) {
-            val image = profile.profileImage
-            val file = File("$cacheDir/$image")
-            loadProfileImage(file, image)
+            val profileImage = profile.profileImage
+            val file = File("$cacheDir/$profileImage")
+            loadProfileImage(file, profileImage)
         }
     }
 
@@ -328,40 +358,26 @@ class ProfileActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    private fun setupRecycler(username: String) {
+    private fun setupRecycler(profileId: String) {
         val linearLayoutManager = LinearLayoutManager(context)
         profile_rc.layoutManager = linearLayoutManager
         CoroutineScope(Main).launch {
-            queryPost(username)
+            queryPost(profileId)
         }
     }
 
-    private suspend fun queryPost(username: String) = withContext(Dispatchers.IO) {
-        Amplify.API.query(
-            ModelQuery.list(Post::class.java, Post.USERNAME.contains(username)),
-            { response ->
-                posts.clear()
-                for (post in response.data) {
-                    posts.add(post)
-                }
-                Log.i("MyAmplifyApp", "Posts added to RecyclerView")
-                CoroutineScope(Main).launch {
-                    withContext(Dispatchers.Default) {
-                        posts.sortByDescending { it.date }
-                    }
-                    withContext(Main) {
-                        runOnUiThread {
-                            val fivePosts = getFivePosts(posts)
-                            profile_rc.adapter = PostAdapter(fivePosts, context, username)
-                            pageHelper(username, posts)
-                        }
-                    }
-                }
-            },
-            { error ->
-                Log.e("MyAmplifyApp", "Query failure", error)
+    private suspend fun queryPost(profileId: String) = withContext(Default) {
+        withContext(Default) {
+            for (postItem in profiles[0].posts) {
+                posts.add(postItem)
             }
-        )
+            posts.sortByDescending { it.date }
+        }
+        withContext(Main) {
+            val fivePosts = getFivePosts(posts)
+            profile_rc.adapter = PostAdapter(fivePosts, context, profileId)
+            pageHelper(profileId, posts)
+        }
     }
 
 
@@ -372,7 +388,7 @@ class ProfileActivity : AppCompatActivity() {
             fivePosts.add(posts[postNumber])
             postNumber += 1
         }
-        if(postNumber % 5 != 0) {
+        if (postNumber % 5 != 0) {
             postNumber += 5 - postNumber % 5
         }
         return fivePosts

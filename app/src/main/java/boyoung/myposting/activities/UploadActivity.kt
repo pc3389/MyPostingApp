@@ -7,15 +7,18 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import boyoung.myposting.R
 import boyoung.myposting.utilities.Constants
 import boyoung.myposting.utilities.UploadHelper
 import com.amplifyframework.api.graphql.model.ModelMutation
+import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.datastore.generated.model.PostStatus
+import com.amplifyframework.datastore.generated.model.Profile
 import com.amplifyframework.storage.StorageException
 import com.amplifyframework.storage.options.StorageUploadFileOptions
 import com.amplifyframework.storage.result.StorageUploadFileResult
@@ -37,14 +40,25 @@ class UploadActivity : AppCompatActivity() {
     companion object {
         private var file: File? = null
         private var hasImage: Boolean = false
-
+        private val profileList: ArrayList<Profile> = ArrayList()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_upload)
+        turnOnProgressBar()
+        val profileId = intent.getStringExtra(Constants.PROFILE_ID)
+        val coroutineScope = CoroutineScope(Main)
+        coroutineScope.launch {
+            if (profileId != null) {
+                queryProfile(profileId)
+            } else {
+                Toast.makeText(context, "Error occured", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
         back_tv_upload.setOnClickListener {
-            finish()
+            onBackPressed()
         }
         savePost_tv_upload.setOnClickListener {
             CoroutineScope(Main).launch {
@@ -58,8 +72,10 @@ class UploadActivity : AppCompatActivity() {
                         null
                     }
                     val content = content_et_upload.text.toString()
-                    post(file, title, content, PostStatus.PUBLISHED, imageKey)
-                    finish()
+                    if (profileList.size != 0) {
+                        val profile = profileList[0]
+                        post(file, title, content, PostStatus.PUBLISHED, imageKey, profile)
+                    }
                 }
             }
 
@@ -67,6 +83,27 @@ class UploadActivity : AppCompatActivity() {
         add_photo_tv_upload.setOnClickListener {
             getImage()
         }
+    }
+
+    private suspend fun queryProfile(profileId: String) = withContext(IO) {
+        Amplify.API.query(
+            ModelQuery.list(Profile::class.java, Profile.ID.contains(profileId)),
+            { response ->
+                for (profileItem in response.data) {
+                    if (profileItem.id == profileId) {
+                        profileList.add(profileItem)
+                        Log.i("MyAmplifyApp", profileItem.username + "is added")
+                    }
+                }
+                turnOffProgressBar()
+            },
+            { error ->
+                Log.e("MyAmplifyApp", "Query failure", error)
+                runOnUiThread {
+                    turnOffProgressBar()
+                }
+            }
+        )
     }
 
     private fun getImage() {
@@ -119,7 +156,7 @@ class UploadActivity : AppCompatActivity() {
         if (resultCode == Activity.RESULT_OK && requestCode == Constants.IMAGE_PICK_CODE) {
 
             val uploadHelper = UploadHelper()
-            if(data?.data != null) {
+            if (data?.data != null) {
                 file = File(uploadHelper.getRealPath(this, data?.data!!))
             }
             Glide.with(this)
@@ -135,7 +172,8 @@ class UploadActivity : AppCompatActivity() {
         title: String,
         content: String,
         status: PostStatus,
-        imageKey: String?
+        imageKey: String?,
+        profile: Profile
     ) =
         withContext(IO) {
             if (file != null && imageKey != null) {
@@ -143,17 +181,21 @@ class UploadActivity : AppCompatActivity() {
             }
 
             val post = Post.builder()
-                .username(getUsername())
                 .title(title)
                 .status(status)
                 .date(todayDate())
+                .profile(profile)
                 .contents(content)
                 .image(imageKey)
                 .build()
 
+
             Amplify.API.mutate(
                 ModelMutation.create(post),
-                { response -> Log.i("MyAmplifyApp", "Todo with id: " + response.data.id) },
+                { response ->
+                    Log.i("MyAmplifyApp", "Todo with id: " + response.data.id)
+                    finish()
+                },
                 { error -> Log.e("MyAmplifyApp", "Create failed", error) }
             )
         }
@@ -169,8 +211,10 @@ class UploadActivity : AppCompatActivity() {
 
         return@withContext builder.toString()
     }
+
     private fun todayDate(): String {
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy. MM. dd. HH:mm")).toString()
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy. MM. dd. HH:mm"))
+            .toString()
     }
 
     private suspend fun imageToS3(file: File?, imageKey: String) = withContext(IO) {
@@ -196,4 +240,19 @@ class UploadActivity : AppCompatActivity() {
         }
     }
 
+    private fun turnOnProgressBar() {
+        runOnUiThread {
+            layout_upload.visibility = View.INVISIBLE
+            progressbar_upload.visibility = View.VISIBLE
+        }
+
+    }
+
+    private fun turnOffProgressBar() {
+        runOnUiThread {
+            layout_upload.visibility = View.VISIBLE
+            progressbar_upload.visibility = View.GONE
+        }
+
+    }
 }

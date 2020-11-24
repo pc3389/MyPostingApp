@@ -13,39 +13,41 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import boyoung.myposting.adapters.MainAdapters
 import boyoung.myposting.R
+import boyoung.myposting.utilities.Constants
 import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Post
+import com.amplifyframework.datastore.generated.model.PostPermission
+import com.amplifyframework.datastore.generated.model.Profile
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.internal.wait
 
 class MainActivity : AppCompatActivity() {
     private val context = this
 
     private val posts: ArrayList<Post> = ArrayList()
+    private val profile: ArrayList<Profile> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val coroutineScope = CoroutineScope(Main)
+        coroutineScope.launch {
+            val username = getUsername()
+            getPostPermission(username)
+            queryProfile(username)
+            queryPost()
+        }
         val linearLayoutManager = LinearLayoutManager(context)
         main_rc.layoutManager = linearLayoutManager
         main_rc.adapter = MainAdapters(posts, context)
 
-        button_add.setOnClickListener {
-            toPostActivity()
-        }
-
         turnOnProgressBar()
-        val a = CoroutineScope(Main).launch {
-            queryPost()
-        }
+
 
         itemsswipetorefresh.setProgressBackgroundColorSchemeColor(
             ContextCompat.getColor(
@@ -56,21 +58,59 @@ class MainActivity : AppCompatActivity() {
         itemsswipetorefresh.setColorSchemeColors(Color.WHITE)
 
         itemsswipetorefresh.setOnRefreshListener {
-            a.cancel()
             turnOnProgressBar()
-            CoroutineScope(Main).launch {
+            coroutineScope.launch {
                 posts.clear()
                 queryPost()
             }
         }
 
+        button_add.setOnClickListener {
+            if (profile.size != 0) {
+                toPostActivity(profile[0].id)
+            } else {
+                Toast.makeText(this, "Profile is not loaded", Toast.LENGTH_SHORT).show()
+            }
+        }
+
     }
 
-    private fun toPostActivity() {
-        val intent = Intent(this, UploadActivity::class.java)
+    override fun onResume() {
+        turnOnProgressBar()
+        CoroutineScope(Main).launch {
+            posts.clear()
+            queryPost()
+        }
+        super.onResume()
+    }
+
+    private fun toPostActivity(profileId: String) {
+        val intent = Intent(this, UploadActivity::class.java).apply {
+            putExtra(Constants.PROFILE_ID, profileId)
+        }
         startActivity(intent)
     }
 
+
+    private suspend fun queryProfile(username: String) = withContext(IO) {
+        Amplify.API.query(
+            ModelQuery.list(Profile::class.java, Profile.USERNAME.contains(username)),
+            { response ->
+                for (profileItem in response.data) {
+                    if (profileItem.username == username) {
+                        profile.add(profileItem)
+                    }
+                    Log.i("MyAmplifyApp", profileItem.username + "is added")
+                }
+            },
+            { error ->
+                Log.e("MyAmplifyApp", "Query failure", error)
+                runOnUiThread {
+                    turnOffProgressBar()
+                }
+            }
+        )
+    }
 
     private suspend fun queryPost() = withContext(IO) {
 
@@ -85,11 +125,9 @@ class MainActivity : AppCompatActivity() {
                     withContext(Default) {
                         posts.sortByDescending { it.date }
                     }
-                    runOnUiThread {
-                        main_rc.adapter = MainAdapters(posts, context)
-                        itemsswipetorefresh.isRefreshing = false
-                        turnOffProgressBar()
-                    }
+                    main_rc.adapter = MainAdapters(posts, context)
+                    itemsswipetorefresh.isRefreshing = false
+                    turnOffProgressBar()
                 }
             },
             { error ->
@@ -139,7 +177,9 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
             R.id.action_profile -> {
-                val intent = Intent(this, ProfileActivity::class.java)
+                val intent = Intent(this, ProfileActivity::class.java).apply {
+                    putExtra(Constants.PROFILE_ID, profile[0].id)
+                }
                 startActivity(intent)
                 return true
             }
@@ -159,18 +199,53 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private suspend fun getPostPermission(name: String) = withContext(IO) {
+        Amplify.API.query(
+            ModelQuery.list(PostPermission::class.java, PostPermission.USERNAME.contains("")),
+            { response ->
+                val usernameList: ArrayList<PostPermission> = ArrayList()
+                val postPermission = PostPermission.builder()
+                    .username(getUsername())
+                    .permission(true)
+                    .build()
+                for (usernameItem in response.data) {
+                    if (usernameItem.username == name)
+                        usernameList.add(usernameItem)
+                }
+                Log.i("MyAmplifyApp", "Usernames updated in recyclerview")
+                if (usernameList.isNotEmpty()) {
+                    if (usernameList[0].permission == true) {
+                        runOnUiThread { button_add.visibility = View.VISIBLE }
+                    } else {
+                        runOnUiThread { button_add.visibility = View.GONE }
+                    }
+                } else {
+                    runOnUiThread { button_add.visibility = View.GONE }
+                }
+            },
+            { error ->
+                Log.e("MyAmplifyApp", "Query failure", error)
+            }
+        )
+    }
+
     private fun getUsername(): String {
         return Amplify.Auth.currentUser.username
     }
+
     private fun turnOnProgressBar() {
-        itemsswipetorefresh.visibility = View.INVISIBLE
-        main_rc.visibility = View.GONE
-        progressbar_main.visibility = View.VISIBLE
+        runOnUiThread {
+            itemsswipetorefresh.visibility = View.INVISIBLE
+            main_rc.visibility = View.GONE
+            progressbar_main.visibility = View.VISIBLE
+        }
     }
 
     private fun turnOffProgressBar() {
-        itemsswipetorefresh.visibility = View.VISIBLE
-        main_rc.visibility = View.VISIBLE
-        progressbar_main.visibility = View.GONE
+        runOnUiThread {
+            itemsswipetorefresh.visibility = View.VISIBLE
+            main_rc.visibility = View.VISIBLE
+            progressbar_main.visibility = View.GONE
+        }
     }
 }

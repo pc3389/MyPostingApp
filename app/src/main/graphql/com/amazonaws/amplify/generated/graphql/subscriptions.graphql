@@ -1,14 +1,100 @@
 # this is an auto generated file. This will be overwritten
+subscription OnCreateProfile {
+  onCreateProfile {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
+    posts {
+      items {
+        id
+        title
+        status
+        date
+        profileID
+        contents
+        image
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+subscription OnUpdateProfile {
+  onUpdateProfile {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
+    posts {
+      items {
+        id
+        title
+        status
+        date
+        profileID
+        contents
+        image
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+subscription OnDeleteProfile {
+  onDeleteProfile {
+    id
+    username
+    nickname
+    profileImage
+    backgroundImage
+    posts {
+      items {
+        id
+        title
+        status
+        date
+        profileID
+        contents
+        image
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
 subscription OnCreatePost {
   onCreatePost {
     id
-    username
     title
     status
     date
+    profileID
     contents
-    nickName
     image
+    profile {
+      id
+      username
+      nickname
+      profileImage
+      backgroundImage
+      posts {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
     comments {
       items {
         id
@@ -27,13 +113,24 @@ subscription OnCreatePost {
 subscription OnUpdatePost {
   onUpdatePost {
     id
-    username
     title
     status
     date
+    profileID
     contents
-    nickName
     image
+    profile {
+      id
+      username
+      nickname
+      profileImage
+      backgroundImage
+      posts {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
     comments {
       items {
         id
@@ -52,13 +149,24 @@ subscription OnUpdatePost {
 subscription OnDeletePost {
   onDeletePost {
     id
-    username
     title
     status
     date
+    profileID
     contents
-    nickName
     image
+    profile {
+      id
+      username
+      nickname
+      profileImage
+      backgroundImage
+      posts {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
     comments {
       items {
         id
@@ -70,39 +178,6 @@ subscription OnDeletePost {
       }
       nextToken
     }
-    createdAt
-    updatedAt
-  }
-}
-subscription OnCreateProfile {
-  onCreateProfile {
-    id
-    username
-    nickname
-    profileImage
-    backgroundImage
-    createdAt
-    updatedAt
-  }
-}
-subscription OnUpdateProfile {
-  onUpdateProfile {
-    id
-    username
-    nickname
-    profileImage
-    backgroundImage
-    createdAt
-    updatedAt
-  }
-}
-subscription OnDeleteProfile {
-  onDeleteProfile {
-    id
-    username
-    nickname
-    profileImage
-    backgroundImage
     createdAt
     updatedAt
   }
@@ -141,13 +216,21 @@ subscription OnCreateComment {
     postID
     post {
       id
-      username
       title
       status
       date
+      profileID
       contents
-      nickName
       image
+      profile {
+        id
+        username
+        nickname
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
       comments {
         nextToken
       }
@@ -166,13 +249,21 @@ subscription OnUpdateComment {
     postID
     post {
       id
-      username
       title
       status
       date
+      profileID
       contents
-      nickName
       image
+      profile {
+        id
+        username
+        nickname
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
       comments {
         nextToken
       }
@@ -191,13 +282,21 @@ subscription OnDeleteComment {
     postID
     post {
       id
-      username
       title
       status
       date
+      profileID
       contents
-      nickName
       image
+      profile {
+        id
+        username
+        nickname
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
       comments {
         nextToken
       }

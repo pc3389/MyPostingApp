@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:contentDescription="@string/back_button"
             android:padding="20dp"
-            android:src="@drawable/ic_baseline_arrow_back_ios_24"
+            android:src="@drawable/ic_arrow_back_24"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -40,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="20dp"
-            android:src="@drawable/ic_baseline_menu_24"
+            android:src="@drawable/ic_menu_24"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -53,21 +53,21 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
-                android:id="@+id/menu_bt_cancel_update"
+                android:id="@+id/cancel_bt_image_update"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="20dp"
-                android:src="@drawable/ic_baseline_cancel_24"
+                android:src="@drawable/ic_cancel_24"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
-                android:id="@+id/menu_bt_save_update"
+                android:id="@+id/save_bt_image_update"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="20dp"
-                android:src="@drawable/ic_baseline_save_24"
-                app:layout_constraintEnd_toStartOf="@id/menu_bt_cancel_update"
+                android:src="@drawable/ic_save_24"
+                app:layout_constraintEnd_toStartOf="@id/cancel_bt_image_update"
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -107,7 +107,7 @@
                     android:id="@+id/camera_profile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_baseline_photo_camera_24"
+                    android:src="@drawable/ic_camera_24"
                     app:layout_constraintBottom_toBottomOf="@id/profileImage_iv_profile"
                     app:layout_constraintEnd_toEndOf="@id/profileImage_iv_profile" />
 

@@ -29,6 +29,7 @@ class ConfirmationActivity : AppCompatActivity() {
                 }
             }
         }
+
         textView_resend.setOnClickListener {
             if (username != null) {
                 CoroutineScope(IO).launch {

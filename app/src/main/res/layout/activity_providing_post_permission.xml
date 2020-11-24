@@ -38,6 +38,13 @@
                 app:layout_constraintBottom_toBottomOf="@id/username_label_permission"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/grey"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/username_rc_permission" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/username_rc_permission"
                 android:layout_width="match_parent"
