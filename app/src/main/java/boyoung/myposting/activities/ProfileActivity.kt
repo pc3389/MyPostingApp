@@ -32,6 +32,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import kotlinx.android.synthetic.main.activity_post.*
 import kotlinx.android.synthetic.main.activity_profile.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.Default
@@ -49,6 +50,7 @@ class ProfileActivity : AppCompatActivity() {
         private val posts: ArrayList<Post> = ArrayList()
         private var postNumber = 0
         private var profileUpdated = false
+        private var noProfile = true
     }
 
 
@@ -62,6 +64,13 @@ class ProfileActivity : AppCompatActivity() {
             val a = CoroutineScope(IO).launch {
                 if (profileId != null) {
                     queryProfile(profileId)
+                } else {
+                    withContext(Main) {
+                        hideProgressBar()
+                        Toast.makeText(context, "Please create your profile", Toast.LENGTH_SHORT)
+                            .show()
+                        showEditProfile()
+                    }
                 }
             }
             var i = 0
@@ -82,62 +91,71 @@ class ProfileActivity : AppCompatActivity() {
                 }
             }
 
+            val email = getEmail()
+            val username = getUsername()
+
+            profAct_text_username.text = username
         }
 
-        camera_profile.setOnClickListener {
+        profAct_image_camera.setOnClickListener {
             getImageFromGallery()
         }
 
         setupMenu()
 
-        cancel_bt_image_update.setOnClickListener {
+        profAct_image_cancel_bt.setOnClickListener {
             hideEditProfile()
         }
 
-        save_bt_image_update.setOnClickListener {
+        profAct_image_save_bt.setOnClickListener {
             CoroutineScope(Main).launch {
-
                 val username = getUsername()
-
-                val name = if (name_et_profile.text.toString() == "") {
+                val name = if (profAct_edit_name.text.toString() == "") {
                     username
                 } else {
-                    name_et_profile.text.toString()
+                    profAct_edit_name.text.toString()
                 }
-
                 val imageKey = if (file != null) {
                     getImageKey(username)
                 } else null
-
-                saveProfile(file, username, name, imageKey)
+                val email = profAct_text_email.text.toString()
+                saveProfile(file, username, name, email, imageKey)
                 showProgressBar()
-                if (profileId != null) {
-                    queryProfile(profileId)
-                }
                 hideEditProfile()
             }
         }
 
 
-        back_bt_update.setOnClickListener {
+        profAct_image_back_bt.setOnClickListener {
             onBackPressed()
         }
     }
 
     private fun setupMenu() {
-        menu_bt_profile.setOnClickListener {
-            val popupMenu = PopupMenu(this@ProfileActivity, menu_bt_profile)
+        profAct_image_menu_bt.setOnClickListener {
+            val popupMenu = PopupMenu(this@ProfileActivity, profAct_image_menu_bt)
             popupMenu.menuInflater.inflate(R.menu.menu_profile, popupMenu.menu)
             popupMenu.setOnMenuItemClickListener {
                 if (it.itemId == R.id.action_edit) {
-                    val name = name_profile.text.toString()
-                    name_et_profile.setText(name)
+                    val name = profAct_text_name.text.toString()
+                    profAct_edit_name.setText(name)
                     showEditProfile()
                 }
                 true
             }
             popupMenu.show()
         }
+    }
+
+    private suspend fun getEmail() = withContext(IO) {
+        Amplify.Auth.fetchUserAttributes(
+            {
+                Log.i("AuthDemo", "User attributes = $it")
+                runOnUiThread { profAct_text_email.text = it[0].value }
+
+            },
+            { Log.e("AuthDemo", "Failed to fetch user attributes. $it") }
+        )
     }
 
     private suspend fun queryProfile(profileId: String) {
@@ -152,12 +170,11 @@ class ProfileActivity : AppCompatActivity() {
                     if (profiles.isNotEmpty()) {
                         CoroutineScope(Main).launch {
                             updateUI(profiles[0])
+                            profileUpdated = true
+                            noProfile = false
                         }
                     }
-                    runOnUiThread {
-                        hideProgressBar()
-                        profileUpdated = true
-                    }
+                    hideProgressBar()
                 },
                 { error -> Log.e("MyAmplifyApp", "Query failure", error) }
             )
@@ -166,7 +183,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private suspend fun updateUI(profile: Profile) = withContext(Main) {
-        name_profile.text = profile.nickname
+        profAct_text_name.text = profile.nickname
         if (profile.profileImage != null && !isDestroyed) {
             val profileImage = profile.profileImage
             val file = File("$cacheDir/$profileImage")
@@ -178,6 +195,7 @@ class ProfileActivity : AppCompatActivity() {
         file: File?,
         username: String,
         name: String,
+        email: String,
         imageKey: String?
     ) =
         withContext(IO) {
@@ -188,12 +206,16 @@ class ProfileActivity : AppCompatActivity() {
             val profile = Profile.builder()
                 .username(username)
                 .nickname(name)
+                .emailAddress(email)
                 .profileImage(imageKey)
                 .build()
 
             Amplify.API.mutate(
                 ModelMutation.create(profile),
                 { response ->
+                    CoroutineScope(Main).launch {
+                        queryProfile(response.data.id)
+                    }
                     Log.i(
                         "MyAmplifyApp",
                         "Profile with name: " + response.data.nickname
@@ -268,7 +290,7 @@ class ProfileActivity : AppCompatActivity() {
                                 return false
                             }
                         })
-                        .into(profileImage_iv_profile)
+                        .into(profAct_image_profile_image)
                 },
                 { error: StorageException? ->
                     Log.e(
@@ -305,7 +327,7 @@ class ProfileActivity : AppCompatActivity() {
                             return false
                         }
                     })
-                    .into(profileImage_iv_profile)
+                    .into(profAct_image_profile_image)
             }
             var time: Int = 0
             while (glideWork.isActive && time < 5) {
@@ -353,14 +375,14 @@ class ProfileActivity : AppCompatActivity() {
             }
             Glide.with(this)
                 .load(data?.data)
-                .into(profileImage_iv_profile)
+                .into(profAct_image_profile_image)
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun setupRecycler(profileId: String) {
         val linearLayoutManager = LinearLayoutManager(context)
-        profile_rc.layoutManager = linearLayoutManager
+        profAct_rc_post.layoutManager = linearLayoutManager
         CoroutineScope(Main).launch {
             queryPost(profileId)
         }
@@ -375,7 +397,7 @@ class ProfileActivity : AppCompatActivity() {
         }
         withContext(Main) {
             val fivePosts = getFivePosts(posts)
-            profile_rc.adapter = PostAdapter(fivePosts, context, profileId)
+            profAct_rc_post.adapter = PostAdapter(fivePosts, context, profileId)
             pageHelper(profileId, posts)
         }
     }
@@ -415,11 +437,11 @@ class ProfileActivity : AppCompatActivity() {
                         dataSource: DataSource?,
                         isFirstResource: Boolean
                     ): Boolean {
-                        previous_page_frame_profile.isClickable = false
+                        profAct_frame_previous_page.isClickable = false
                         return false
                     }
                 })
-                .into(previous_page_image_profile)
+                .into(profAct_image_previous_page)
         } else {
             Glide.with(context)
                 .load(R.drawable.previous_page_available)
@@ -440,18 +462,18 @@ class ProfileActivity : AppCompatActivity() {
                         dataSource: DataSource?,
                         isFirstResource: Boolean
                     ): Boolean {
-                        previous_page_frame_profile.setOnClickListener {
+                        profAct_frame_previous_page.setOnClickListener {
                             if (username != null) {
                                 postNumber -= 10
                                 val fivePosts = getFivePosts(posts)
-                                profile_rc.adapter = PostAdapter(fivePosts, context, username)
+                                profAct_rc_post.adapter = PostAdapter(fivePosts, context, username)
                                 pageHelper(username, posts)
                             }
                         }
                         return false
                     }
                 })
-                .into(previous_page_image_profile)
+                .into(profAct_image_previous_page)
         }
         if (postNumber >= posts.size) {
             Glide.with(context)
@@ -473,11 +495,11 @@ class ProfileActivity : AppCompatActivity() {
                         dataSource: DataSource?,
                         isFirstResource: Boolean
                     ): Boolean {
-                        next_page_frame_profile.isClickable = false
+                        profAct_frame_next_page.isClickable = false
                         return false
                     }
                 })
-                .into(next_page_image_profile)
+                .into(profAct_image_next_page)
         } else {
             Glide.with(context)
                 .load(R.drawable.next_page_available_24)
@@ -498,52 +520,66 @@ class ProfileActivity : AppCompatActivity() {
                         dataSource: DataSource?,
                         isFirstResource: Boolean
                     ): Boolean {
-                        next_page_frame_profile.setOnClickListener {
+                        profAct_frame_next_page.setOnClickListener {
                             if (username != null) {
                                 val fivePosts = getFivePosts(posts)
-                                profile_rc.adapter = PostAdapter(fivePosts, context, username)
+                                profAct_rc_post.adapter = PostAdapter(fivePosts, context, username)
                                 pageHelper(username, posts)
                             }
                         }
                         return false
                     }
                 })
-                .into(next_page_image_profile)
+                .into(profAct_image_next_page)
         }
     }
 
     override fun onBackPressed() {
-        if (save_and_cancel.visibility == View.VISIBLE) {
-            hideEditProfile()
-            return
-        } else {
-            finish()
+        if (!noProfile) {
+            if (profAct_layout_save_and_cancel.visibility == View.VISIBLE) {
+                hideEditProfile()
+                return
+            } else {
+                finish()
+            }
+            super.onBackPressed()
         }
-        super.onBackPressed()
     }
 
 
     private fun showEditProfile() {
-        name_profile.visibility = View.GONE
-        name_et_profile.visibility = View.VISIBLE
-        save_and_cancel.visibility = View.VISIBLE
-        camera_profile.visibility = View.VISIBLE
+        runOnUiThread {
+            profAct_text_name.visibility = View.GONE
+            profAct_layout_username_and_email.visibility = View.GONE
+            profAct_layout_postrc.visibility = View.GONE
+            profAct_edit_name.visibility = View.VISIBLE
+            profAct_layout_save_and_cancel.visibility = View.VISIBLE
+            profAct_image_camera.visibility = View.VISIBLE
+        }
     }
 
     private fun hideEditProfile() {
-        name_profile.visibility = View.VISIBLE
-        name_et_profile.visibility = View.GONE
-        save_and_cancel.visibility = View.GONE
-        camera_profile.visibility = View.GONE
+        runOnUiThread {
+            profAct_text_name.visibility = View.VISIBLE
+            profAct_layout_username_and_email.visibility = View.VISIBLE
+            profAct_layout_postrc.visibility = View.VISIBLE
+            profAct_edit_name.visibility = View.GONE
+            profAct_layout_save_and_cancel.visibility = View.GONE
+            profAct_image_camera.visibility = View.GONE
+        }
     }
 
     private fun showProgressBar() {
-        progressbar_profile.visibility = View.VISIBLE
-        layout_all_profile.visibility = View.GONE
+        runOnUiThread {
+            profAct_progressbar.visibility = View.VISIBLE
+            profAct_all_layout.visibility = View.GONE
+        }
     }
 
     private fun hideProgressBar() {
-        progressbar_profile.visibility = View.GONE
-        layout_all_profile.visibility = View.VISIBLE
+        runOnUiThread {
+            profAct_progressbar.visibility = View.GONE
+            profAct_all_layout.visibility = View.VISIBLE
+        }
     }
 }

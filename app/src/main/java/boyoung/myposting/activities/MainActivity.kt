@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,6 +21,7 @@ import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.datastore.generated.model.PostPermission
 import com.amplifyframework.datastore.generated.model.Profile
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_profile.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity() {
 
     private val posts: ArrayList<Post> = ArrayList()
     private val profile: ArrayList<Profile> = ArrayList()
+    private var profileReady = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,14 +43,20 @@ class MainActivity : AppCompatActivity() {
             val username = getUsername()
             getPostPermission(username)
             queryProfile(username)
-            queryPost()
+            var i = 0
+            while (!profileReady && i < 10) {
+                delay(100L)
+                i++
+            }
+            if (profileReady) {
+                queryPost()
+            }
+
+            val linearLayoutManager = LinearLayoutManager(context)
+            main_rc.layoutManager = linearLayoutManager
         }
-        val linearLayoutManager = LinearLayoutManager(context)
-        main_rc.layoutManager = linearLayoutManager
-        main_rc.adapter = MainAdapters(posts, context)
-
         turnOnProgressBar()
-
+        setupMenu()
 
         itemsswipetorefresh.setProgressBackgroundColorSchemeColor(
             ContextCompat.getColor(
@@ -60,7 +69,6 @@ class MainActivity : AppCompatActivity() {
         itemsswipetorefresh.setOnRefreshListener {
             turnOnProgressBar()
             coroutineScope.launch {
-                posts.clear()
                 queryPost()
             }
         }
@@ -78,7 +86,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         turnOnProgressBar()
         CoroutineScope(Main).launch {
-            posts.clear()
             queryPost()
         }
         super.onResume()
@@ -97,11 +104,19 @@ class MainActivity : AppCompatActivity() {
             ModelQuery.list(Profile::class.java, Profile.USERNAME.contains(username)),
             { response ->
                 for (profileItem in response.data) {
-                    if (profileItem.username == username) {
-                        profile.add(profileItem)
+                    if (profileItem != null) {
+                        if (profileItem.username == username) {
+                            profile.add(profileItem)
+                        }
+                        Log.i("MyAmplifyApp", profileItem.username + "is added")
                     }
-                    Log.i("MyAmplifyApp", profileItem.username + "is added")
                 }
+                if (profile.size == 0) {
+                    startProfileActivity()
+                } else {
+                    profileReady = true
+                }
+
             },
             { error ->
                 Log.e("MyAmplifyApp", "Query failure", error)
@@ -117,6 +132,7 @@ class MainActivity : AppCompatActivity() {
         Amplify.API.query(
             ModelQuery.list(Post::class.java, Post.TITLE.contains("")),
             { response ->
+                posts.clear()
                 for (post in response.data) {
                     posts.add(post)
                     Log.i("MyAmplifyApp", post.title)
@@ -158,44 +174,35 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        val menuItem = menu?.findItem(R.id.action_providePostPermission)
-        menuItem?.isVisible = getUsername() == "pc3389"
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_settings -> {
-                val intent = Intent(this, SettingsActivity::class.java)
-                startActivity(intent)
-                return true
+    private fun setupMenu() {
+        menu_bt_image_main.setOnClickListener {
+            val popupMenu = PopupMenu(this@MainActivity, menu_bt_image_main)
+            popupMenu.menuInflater.inflate(R.menu.menu_main, popupMenu.menu)
+            popupMenu.menu.findItem(R.id.action_providePostPermission).isVisible =
+                getUsername() == "pc3389"
+            if (getUsername() == "guest") {
+                popupMenu.menu.findItem(R.id.action_profile).isVisible = false
             }
-            R.id.action_profile -> {
-                val intent = Intent(this, ProfileActivity::class.java).apply {
-                    putExtra(Constants.PROFILE_ID, profile[0].id)
+            popupMenu.setOnMenuItemClickListener {
+                if (it.itemId == R.id.action_settings) {
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent)
                 }
-                startActivity(intent)
-                return true
-            }
-            R.id.action_signOut -> {
-                CoroutineScope(IO).launch {
-                    signOut()
+                if (it.itemId == R.id.action_profile) {
+                    startProfileActivity(profile[0].id)
                 }
-                return true
+                if (it.itemId == R.id.action_signOut) {
+                    CoroutineScope(IO).launch {
+                        signOut()
+                    }
+                }
+                if (it.itemId == R.id.action_providePostPermission) {
+                    val intent = Intent(this, ProvidingPostPermissionActivity::class.java)
+                    startActivity(intent)
+                }
+                true
             }
-
-            R.id.action_providePostPermission -> {
-                val intent = Intent(this, ProvidingPostPermissionActivity::class.java)
-                startActivity(intent)
-                return true
-            }
-            else -> super.onOptionsItemSelected(item)
+            popupMenu.show()
         }
     }
 
@@ -239,6 +246,18 @@ class MainActivity : AppCompatActivity() {
             main_rc.visibility = View.GONE
             progressbar_main.visibility = View.VISIBLE
         }
+    }
+
+    private fun startProfileActivity() {
+        val intent = Intent(this, ProfileActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun startProfileActivity(profileId: String) {
+        val intent = Intent(this, ProfileActivity::class.java).apply {
+            putExtra(Constants.PROFILE_ID, profileId)
+        }
+        startActivity(intent)
     }
 
     private fun turnOffProgressBar() {

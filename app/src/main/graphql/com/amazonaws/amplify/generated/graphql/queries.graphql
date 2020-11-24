@@ -4,6 +4,7 @@ query GetProfile($id: ID!) {
     id
     username
     nickname
+    emailAddress
     profileImage
     backgroundImage
     posts {
@@ -34,6 +35,7 @@ query ListProfiles(
       id
       username
       nickname
+      emailAddress
       profileImage
       backgroundImage
       posts {
@@ -58,6 +60,7 @@ query GetPost($id: ID!) {
       id
       username
       nickname
+      emailAddress
       profileImage
       backgroundImage
       posts {
@@ -69,9 +72,19 @@ query GetPost($id: ID!) {
     comments {
       items {
         id
-        username
         postID
+        profileID
         content
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    likes {
+      items {
+        id
+        postID
+        profileID
         createdAt
         updatedAt
       }
@@ -99,12 +112,16 @@ query ListPosts(
         id
         username
         nickname
+        emailAddress
         profileImage
         backgroundImage
         createdAt
         updatedAt
       }
       comments {
+        nextToken
+      }
+      likes {
         nextToken
       }
       createdAt
@@ -141,8 +158,8 @@ query ListPostPermissions(
 query GetComment($id: ID!) {
   getComment(id: $id) {
     id
-    username
     postID
+    profileID
     post {
       id
       title
@@ -155,12 +172,16 @@ query GetComment($id: ID!) {
         id
         username
         nickname
+        emailAddress
         profileImage
         backgroundImage
         createdAt
         updatedAt
       }
       comments {
+        nextToken
+      }
+      likes {
         nextToken
       }
       createdAt
@@ -179,8 +200,8 @@ query ListComments(
   listComments(filter: $filter, limit: $limit, nextToken: $nextToken) {
     items {
       id
-      username
       postID
+      profileID
       post {
         id
         title
@@ -193,6 +214,69 @@ query ListComments(
         updatedAt
       }
       content
+      createdAt
+      updatedAt
+    }
+    nextToken
+  }
+}
+query GetLike($id: ID!) {
+  getLike(id: $id) {
+    id
+    postID
+    profileID
+    post {
+      id
+      title
+      status
+      date
+      profileID
+      contents
+      image
+      profile {
+        id
+        username
+        nickname
+        emailAddress
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
+      comments {
+        nextToken
+      }
+      likes {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+    createdAt
+    updatedAt
+  }
+}
+query ListLikes(
+  $filter: ModelLikeFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listLikes(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      postID
+      profileID
+      post {
+        id
+        title
+        status
+        date
+        profileID
+        contents
+        image
+        createdAt
+        updatedAt
+      }
       createdAt
       updatedAt
     }

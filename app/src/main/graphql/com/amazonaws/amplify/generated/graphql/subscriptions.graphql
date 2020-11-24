@@ -4,6 +4,7 @@ subscription OnCreateProfile {
     id
     username
     nickname
+    emailAddress
     profileImage
     backgroundImage
     posts {
@@ -29,6 +30,7 @@ subscription OnUpdateProfile {
     id
     username
     nickname
+    emailAddress
     profileImage
     backgroundImage
     posts {
@@ -54,6 +56,7 @@ subscription OnDeleteProfile {
     id
     username
     nickname
+    emailAddress
     profileImage
     backgroundImage
     posts {
@@ -87,6 +90,7 @@ subscription OnCreatePost {
       id
       username
       nickname
+      emailAddress
       profileImage
       backgroundImage
       posts {
@@ -98,9 +102,19 @@ subscription OnCreatePost {
     comments {
       items {
         id
-        username
         postID
+        profileID
         content
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    likes {
+      items {
+        id
+        postID
+        profileID
         createdAt
         updatedAt
       }
@@ -123,6 +137,7 @@ subscription OnUpdatePost {
       id
       username
       nickname
+      emailAddress
       profileImage
       backgroundImage
       posts {
@@ -134,9 +149,19 @@ subscription OnUpdatePost {
     comments {
       items {
         id
-        username
         postID
+        profileID
         content
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    likes {
+      items {
+        id
+        postID
+        profileID
         createdAt
         updatedAt
       }
@@ -159,6 +184,7 @@ subscription OnDeletePost {
       id
       username
       nickname
+      emailAddress
       profileImage
       backgroundImage
       posts {
@@ -170,9 +196,19 @@ subscription OnDeletePost {
     comments {
       items {
         id
-        username
         postID
+        profileID
         content
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+    likes {
+      items {
+        id
+        postID
+        profileID
         createdAt
         updatedAt
       }
@@ -212,8 +248,8 @@ subscription OnDeletePostPermission {
 subscription OnCreateComment {
   onCreateComment {
     id
-    username
     postID
+    profileID
     post {
       id
       title
@@ -226,12 +262,16 @@ subscription OnCreateComment {
         id
         username
         nickname
+        emailAddress
         profileImage
         backgroundImage
         createdAt
         updatedAt
       }
       comments {
+        nextToken
+      }
+      likes {
         nextToken
       }
       createdAt
@@ -245,8 +285,8 @@ subscription OnCreateComment {
 subscription OnUpdateComment {
   onUpdateComment {
     id
-    username
     postID
+    profileID
     post {
       id
       title
@@ -259,12 +299,16 @@ subscription OnUpdateComment {
         id
         username
         nickname
+        emailAddress
         profileImage
         backgroundImage
         createdAt
         updatedAt
       }
       comments {
+        nextToken
+      }
+      likes {
         nextToken
       }
       createdAt
@@ -278,8 +322,8 @@ subscription OnUpdateComment {
 subscription OnDeleteComment {
   onDeleteComment {
     id
-    username
     postID
+    profileID
     post {
       id
       title
@@ -292,6 +336,7 @@ subscription OnDeleteComment {
         id
         username
         nickname
+        emailAddress
         profileImage
         backgroundImage
         createdAt
@@ -300,10 +345,121 @@ subscription OnDeleteComment {
       comments {
         nextToken
       }
+      likes {
+        nextToken
+      }
       createdAt
       updatedAt
     }
     content
+    createdAt
+    updatedAt
+  }
+}
+subscription OnCreateLike {
+  onCreateLike {
+    id
+    postID
+    profileID
+    post {
+      id
+      title
+      status
+      date
+      profileID
+      contents
+      image
+      profile {
+        id
+        username
+        nickname
+        emailAddress
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
+      comments {
+        nextToken
+      }
+      likes {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+    createdAt
+    updatedAt
+  }
+}
+subscription OnUpdateLike {
+  onUpdateLike {
+    id
+    postID
+    profileID
+    post {
+      id
+      title
+      status
+      date
+      profileID
+      contents
+      image
+      profile {
+        id
+        username
+        nickname
+        emailAddress
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
+      comments {
+        nextToken
+      }
+      likes {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+    createdAt
+    updatedAt
+  }
+}
+subscription OnDeleteLike {
+  onDeleteLike {
+    id
+    postID
+    profileID
+    post {
+      id
+      title
+      status
+      date
+      profileID
+      contents
+      image
+      profile {
+        id
+        username
+        nickname
+        emailAddress
+        profileImage
+        backgroundImage
+        createdAt
+        updatedAt
+      }
+      comments {
+        nextToken
+      }
+      likes {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
     createdAt
     updatedAt
   }

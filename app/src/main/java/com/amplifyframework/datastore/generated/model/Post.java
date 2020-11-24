@@ -37,6 +37,7 @@ public final class Post implements Model {
   private final @ModelField(targetType="String") String image;
   private final @ModelField(targetType="Profile") @BelongsTo(targetName = "profileID", type = Profile.class) Profile profile;
   private final @ModelField(targetType="Comment") @HasMany(associatedWith = "post", type = Comment.class) List<Comment> comments = null;
+  private final @ModelField(targetType="Like") @HasMany(associatedWith = "post", type = Like.class) List<Like> likes = null;
   public String getId() {
       return id;
   }
@@ -67,6 +68,10 @@ public final class Post implements Model {
   
   public List<Comment> getComments() {
       return comments;
+  }
+  
+  public List<Like> getLikes() {
+      return likes;
   }
   
   private Post(String id, String title, PostStatus status, String date, String contents, String image, Profile profile) {

@@ -62,13 +62,6 @@ class PostAdapter(private val items: ArrayList<Post>, val context: Context, val 
                 val intent = Intent(context, PostActivity::class.java).apply {
                     putExtra(Constants.PROFILE_ID, items[position].profile.id)
                     putExtra(Constants.POST_ID, items[position].id)
-                    putExtra(Constants.POST_DATE, date)
-                    putExtra(Constants.POST_IMAGE, image)
-                    putExtra(Constants.PROFILE_USERNAME, items[position].profile.username)
-                    putExtra(Constants.PROFILE_NICKNAME, items[position].profile.nickname)
-                    putExtra(Constants.POST_TITLE, title)
-                    putExtra(Constants.POST_CONTENT, items[position].contents)
-                    putExtra(Constants.PROFILE_IMAGE, items[position].profile.profileImage)
                 }
                 context.startActivity(intent)
             }

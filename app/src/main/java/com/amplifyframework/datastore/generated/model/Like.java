@@ -16,19 +16,17 @@ import com.amplifyframework.core.model.query.predicate.QueryField;
 
 import static com.amplifyframework.core.model.query.predicate.QueryField.field;
 
-/** This is an auto generated class representing the Comment type in your schema. */
+/** This is an auto generated class representing the Like type in your schema. */
 @SuppressWarnings("all")
-@ModelConfig(pluralName = "Comments")
-@Index(name = "byPost", fields = {"postID","content"})
-public final class Comment implements Model {
+@ModelConfig(pluralName = "Likes")
+@Index(name = "byPost", fields = {"postID"})
+public final class Like implements Model {
   public static final QueryField ID = field("id");
   public static final QueryField PROFILE_ID = field("profileID");
   public static final QueryField POST = field("postID");
-  public static final QueryField CONTENT = field("content");
   private final @ModelField(targetType="ID", isRequired = true) String id;
   private final @ModelField(targetType="ID", isRequired = true) String profileID;
   private final @ModelField(targetType="Post") @BelongsTo(targetName = "postID", type = Post.class) Post post;
-  private final @ModelField(targetType="String", isRequired = true) String content;
   public String getId() {
       return id;
   }
@@ -41,15 +39,10 @@ public final class Comment implements Model {
       return post;
   }
   
-  public String getContent() {
-      return content;
-  }
-  
-  private Comment(String id, String profileID, Post post, String content) {
+  private Like(String id, String profileID, Post post) {
     this.id = id;
     this.profileID = profileID;
     this.post = post;
-    this.content = content;
   }
   
   @Override
@@ -59,11 +52,10 @@ public final class Comment implements Model {
       } else if(obj == null || getClass() != obj.getClass()) {
         return false;
       } else {
-      Comment comment = (Comment) obj;
-      return ObjectsCompat.equals(getId(), comment.getId()) &&
-              ObjectsCompat.equals(getProfileId(), comment.getProfileId()) &&
-              ObjectsCompat.equals(getPost(), comment.getPost()) &&
-              ObjectsCompat.equals(getContent(), comment.getContent());
+      Like like = (Like) obj;
+      return ObjectsCompat.equals(getId(), like.getId()) &&
+              ObjectsCompat.equals(getProfileId(), like.getProfileId()) &&
+              ObjectsCompat.equals(getPost(), like.getPost());
       }
   }
   
@@ -73,7 +65,6 @@ public final class Comment implements Model {
       .append(getId())
       .append(getProfileId())
       .append(getPost())
-      .append(getContent())
       .toString()
       .hashCode();
   }
@@ -81,11 +72,10 @@ public final class Comment implements Model {
   @Override
    public String toString() {
     return new StringBuilder()
-      .append("Comment {")
+      .append("Like {")
       .append("id=" + String.valueOf(getId()) + ", ")
       .append("profileID=" + String.valueOf(getProfileId()) + ", ")
-      .append("post=" + String.valueOf(getPost()) + ", ")
-      .append("content=" + String.valueOf(getContent()))
+      .append("post=" + String.valueOf(getPost()))
       .append("}")
       .toString();
   }
@@ -103,7 +93,7 @@ public final class Comment implements Model {
    * @return an instance of this model with only ID populated
    * @throws IllegalArgumentException Checks that ID is in the proper format
    */
-  public static Comment justId(String id) {
+  public static Like justId(String id) {
     try {
       UUID.fromString(id); // Check that ID is in the UUID format - if not an exception is thrown
     } catch (Exception exception) {
@@ -113,9 +103,8 @@ public final class Comment implements Model {
               "creating a new object, use the standard builder method and leave the ID field blank."
       );
     }
-    return new Comment(
+    return new Like(
       id,
-      null,
       null,
       null
     );
@@ -124,53 +113,38 @@ public final class Comment implements Model {
   public CopyOfBuilder copyOfBuilder() {
     return new CopyOfBuilder(id,
       profileID,
-      post,
-      content);
+      post);
   }
   public interface ProfileIdStep {
-    ContentStep profileId(String profileId);
-  }
-  
-
-  public interface ContentStep {
-    BuildStep content(String content);
+    BuildStep profileId(String profileId);
   }
   
 
   public interface BuildStep {
-    Comment build();
+    Like build();
     BuildStep id(String id) throws IllegalArgumentException;
     BuildStep post(Post post);
   }
   
 
-  public static class Builder implements ProfileIdStep, ContentStep, BuildStep {
+  public static class Builder implements ProfileIdStep, BuildStep {
     private String id;
     private String profileID;
-    private String content;
     private Post post;
     @Override
-     public Comment build() {
+     public Like build() {
         String id = this.id != null ? this.id : UUID.randomUUID().toString();
         
-        return new Comment(
+        return new Like(
           id,
           profileID,
-          post,
-          content);
+          post);
     }
     
     @Override
-     public ContentStep profileId(String profileId) {
+     public BuildStep profileId(String profileId) {
         Objects.requireNonNull(profileId);
         this.profileID = profileId;
-        return this;
-    }
-    
-    @Override
-     public BuildStep content(String content) {
-        Objects.requireNonNull(content);
-        this.content = content;
         return this;
     }
     
@@ -203,21 +177,15 @@ public final class Comment implements Model {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, String profileId, Post post, String content) {
+    private CopyOfBuilder(String id, String profileId, Post post) {
       super.id(id);
       super.profileId(profileId)
-        .content(content)
         .post(post);
     }
     
     @Override
      public CopyOfBuilder profileId(String profileId) {
       return (CopyOfBuilder) super.profileId(profileId);
-    }
-    
-    @Override
-     public CopyOfBuilder content(String content) {
-      return (CopyOfBuilder) super.content(content);
     }
     
     @Override

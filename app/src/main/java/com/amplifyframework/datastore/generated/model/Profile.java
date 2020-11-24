@@ -23,11 +23,13 @@ public final class Profile implements Model {
   public static final QueryField ID = field("id");
   public static final QueryField USERNAME = field("username");
   public static final QueryField NICKNAME = field("nickname");
+  public static final QueryField EMAIL_ADDRESS = field("emailAddress");
   public static final QueryField PROFILE_IMAGE = field("profileImage");
   public static final QueryField BACKGROUND_IMAGE = field("backgroundImage");
   private final @ModelField(targetType="ID", isRequired = true) String id;
   private final @ModelField(targetType="String", isRequired = true) String username;
   private final @ModelField(targetType="String", isRequired = true) String nickname;
+  private final @ModelField(targetType="String", isRequired = true) String emailAddress;
   private final @ModelField(targetType="String") String profileImage;
   private final @ModelField(targetType="String") String backgroundImage;
   private final @ModelField(targetType="Post") @HasMany(associatedWith = "profile", type = Post.class) List<Post> posts = null;
@@ -43,6 +45,10 @@ public final class Profile implements Model {
       return nickname;
   }
   
+  public String getEmailAddress() {
+      return emailAddress;
+  }
+  
   public String getProfileImage() {
       return profileImage;
   }
@@ -55,10 +61,11 @@ public final class Profile implements Model {
       return posts;
   }
   
-  private Profile(String id, String username, String nickname, String profileImage, String backgroundImage) {
+  private Profile(String id, String username, String nickname, String emailAddress, String profileImage, String backgroundImage) {
     this.id = id;
     this.username = username;
     this.nickname = nickname;
+    this.emailAddress = emailAddress;
     this.profileImage = profileImage;
     this.backgroundImage = backgroundImage;
   }
@@ -74,6 +81,7 @@ public final class Profile implements Model {
       return ObjectsCompat.equals(getId(), profile.getId()) &&
               ObjectsCompat.equals(getUsername(), profile.getUsername()) &&
               ObjectsCompat.equals(getNickname(), profile.getNickname()) &&
+              ObjectsCompat.equals(getEmailAddress(), profile.getEmailAddress()) &&
               ObjectsCompat.equals(getProfileImage(), profile.getProfileImage()) &&
               ObjectsCompat.equals(getBackgroundImage(), profile.getBackgroundImage());
       }
@@ -85,6 +93,7 @@ public final class Profile implements Model {
       .append(getId())
       .append(getUsername())
       .append(getNickname())
+      .append(getEmailAddress())
       .append(getProfileImage())
       .append(getBackgroundImage())
       .toString()
@@ -98,6 +107,7 @@ public final class Profile implements Model {
       .append("id=" + String.valueOf(getId()) + ", ")
       .append("username=" + String.valueOf(getUsername()) + ", ")
       .append("nickname=" + String.valueOf(getNickname()) + ", ")
+      .append("emailAddress=" + String.valueOf(getEmailAddress()) + ", ")
       .append("profileImage=" + String.valueOf(getProfileImage()) + ", ")
       .append("backgroundImage=" + String.valueOf(getBackgroundImage()))
       .append("}")
@@ -132,6 +142,7 @@ public final class Profile implements Model {
       null,
       null,
       null,
+      null,
       null
     );
   }
@@ -140,6 +151,7 @@ public final class Profile implements Model {
     return new CopyOfBuilder(id,
       username,
       nickname,
+      emailAddress,
       profileImage,
       backgroundImage);
   }
@@ -149,7 +161,12 @@ public final class Profile implements Model {
   
 
   public interface NicknameStep {
-    BuildStep nickname(String nickname);
+    EmailAddressStep nickname(String nickname);
+  }
+  
+
+  public interface EmailAddressStep {
+    BuildStep emailAddress(String emailAddress);
   }
   
 
@@ -161,10 +178,11 @@ public final class Profile implements Model {
   }
   
 
-  public static class Builder implements UsernameStep, NicknameStep, BuildStep {
+  public static class Builder implements UsernameStep, NicknameStep, EmailAddressStep, BuildStep {
     private String id;
     private String username;
     private String nickname;
+    private String emailAddress;
     private String profileImage;
     private String backgroundImage;
     @Override
@@ -175,6 +193,7 @@ public final class Profile implements Model {
           id,
           username,
           nickname,
+          emailAddress,
           profileImage,
           backgroundImage);
     }
@@ -187,9 +206,16 @@ public final class Profile implements Model {
     }
     
     @Override
-     public BuildStep nickname(String nickname) {
+     public EmailAddressStep nickname(String nickname) {
         Objects.requireNonNull(nickname);
         this.nickname = nickname;
+        return this;
+    }
+    
+    @Override
+     public BuildStep emailAddress(String emailAddress) {
+        Objects.requireNonNull(emailAddress);
+        this.emailAddress = emailAddress;
         return this;
     }
     
@@ -228,10 +254,11 @@ public final class Profile implements Model {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, String username, String nickname, String profileImage, String backgroundImage) {
+    private CopyOfBuilder(String id, String username, String nickname, String emailAddress, String profileImage, String backgroundImage) {
       super.id(id);
       super.username(username)
         .nickname(nickname)
+        .emailAddress(emailAddress)
         .profileImage(profileImage)
         .backgroundImage(backgroundImage);
     }
@@ -244,6 +271,11 @@ public final class Profile implements Model {
     @Override
      public CopyOfBuilder nickname(String nickname) {
       return (CopyOfBuilder) super.nickname(nickname);
+    }
+    
+    @Override
+     public CopyOfBuilder emailAddress(String emailAddress) {
+      return (CopyOfBuilder) super.emailAddress(emailAddress);
     }
     
     @Override

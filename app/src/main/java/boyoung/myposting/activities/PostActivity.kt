@@ -1,6 +1,7 @@
 package boyoung.myposting.activities
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.Drawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -37,8 +38,9 @@ class PostActivity : AppCompatActivity() {
 
     companion object {
         private val posts: ArrayList<Post> = ArrayList()
+        private val thisPost: ArrayList<Post> = ArrayList()
         private var postNumber = 0
-        private var readyForDelete = false
+        private var postLoaded = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,30 +50,78 @@ class PostActivity : AppCompatActivity() {
         postNumber = 0
         val profileId = intent.getStringExtra(Constants.PROFILE_ID)
         val postId = intent.getStringExtra(Constants.POST_ID)
-        val date = intent.getStringExtra(Constants.POST_DATE)
-        val image = intent.getStringExtra(Constants.POST_IMAGE)
-        val name = intent.getStringExtra(Constants.PROFILE_NICKNAME)
-        val username = intent.getStringExtra(Constants.PROFILE_USERNAME)
-        val title = intent.getStringExtra(Constants.POST_TITLE)
-        val content = intent.getStringExtra(Constants.POST_CONTENT)
-        val profileImage = intent.getStringExtra(Constants.PROFILE_IMAGE)
 
-        val imagePath = "$cacheDir/$image"
-        val profileImagePath = "$cacheDir/$profileImage"
-        title_tv_post.text = title
-        date_tv_post.text = date
-        name_tv_post.text = name
-        content_tv_post.text = content
+        val coroutineScope = CoroutineScope(Main)
+        coroutineScope.launch {
+            if (postId != null) {
+                queryPostById(postId, thisPost)
+            }
 
-        val recyclerTitle = "Other posts from $name"
-        recycler_title_post.text = recyclerTitle
+            var i = 0
+            while (!postLoaded && i < 10) {
+                delay(100L)
+                i++
+            }
+            if (postLoaded && thisPost.size != 0) {
+                val post = thisPost[0]
+                val date = post.date
+                val image = post.image
+                val name = post.profile.nickname
+                val username = post.profile.username
+                val title = post.title
+                val content = post.contents
+                val profileImage = post.profile.profileImage
+                val comments = post.comments.size
 
-        CoroutineScope(Main).launch {
-            loadProfileImage(profileImagePath, profile_image_iv_post, context)
+                val imagePath = "$cacheDir/$image"
+                val profileImagePath = "$cacheDir/$profileImage"
+                title_tv.text = title
+                date_tv.text = date
+                name_tv.text = name
+                postAct_text_content.text = content
+                val commentSize = "$comments comments"
+                postAct_text_comments.text = commentSize
+
+                val recyclerTitle = "Other posts from $name"
+                postAct_text_recycler_title.text = recyclerTitle
+
+                CoroutineScope(Main).launch {
+                    loadProfileImage(profileImagePath, postAct_image_profile_image, context)
+                }
+                loadImage(imagePath)
+
+                if (username != null && profileId != null && postId != null) {
+                    setupRecycler(profileId, postId)
+                    setupMenu(username, postId)
+                }
+
+                postAct_image_back_bt.setOnClickListener {
+                    onBackPressed()
+                }
+
+                postAct_text_comments.setOnClickListener {
+                    if (thisPost[0].comments.size == 0) {
+                        val intent = Intent(context, CommentActivity::class.java).apply {
+                            putExtra(Constants.PROFILE_ID, profileId)
+                            putExtra(Constants.POST_ID, postId)
+                        }
+                        startActivity(intent)
+                    }
+                }
+                postAct_layout_profile.setOnClickListener {
+                    val intent = Intent(context, ProfileActivity::class.java).apply {
+                        putExtra(Constants.PROFILE_ID, profileId)
+                    }
+                    startActivity(intent)
+                }
+            }
         }
+    }
+
+    private fun loadImage(imagePath: String) {
         val file = File(imagePath)
         if (file.exists()) {
-            Glide.with(this)
+            Glide.with(context)
                 .load(file)
                 .listener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(
@@ -80,7 +130,7 @@ class PostActivity : AppCompatActivity() {
                         target: Target<Drawable>?,
                         isFirstResource: Boolean
                     ): Boolean {
-                        postImage_iv_post.visibility = View.VISIBLE
+                        postAct_image_post_image.visibility = View.VISIBLE
                         return false
                     }
 
@@ -91,27 +141,18 @@ class PostActivity : AppCompatActivity() {
                         dataSource: DataSource?,
                         isFirstResource: Boolean
                     ): Boolean {
-                        postImage_iv_post.visibility = View.VISIBLE
+                        postAct_image_post_image.visibility = View.VISIBLE
                         return false
                     }
                 })
-                .into(postImage_iv_post)
-        }
-
-        if (username != null && profileId != null && postId != null) {
-            setupRecycler(profileId, postId)
-            setupMenu(username, postId)
-        }
-
-        back_bt_iv_post.setOnClickListener {
-            onBackPressed()
+                .into(postAct_image_post_image)
         }
     }
 
     private fun setupMenu(username: String, id: String) {
         if (username == Amplify.Auth.currentUser.username) {
-            menu_bt_iv_post.setOnClickListener {
-                val popupMenu = PopupMenu(this@PostActivity, menu_bt_iv_post)
+            postAct_image_menu_bt.setOnClickListener {
+                val popupMenu = PopupMenu(this@PostActivity, postAct_image_menu_bt)
                 popupMenu.menuInflater.inflate(R.menu.menu_post, popupMenu.menu)
                 popupMenu.setOnMenuItemClickListener {
                     if (it.itemId == R.id.action_edit) {
@@ -122,15 +163,15 @@ class PostActivity : AppCompatActivity() {
                             val deletePost: ArrayList<Post> = ArrayList()
                             val a = CoroutineScope(IO).launch { queryPostById(id, deletePost) }
                             var i = 0
-                            while (!readyForDelete && i < 20) {
+                            while (!postLoaded && i < 20) {
                                 delay(100L)
                                 i++
                             }
                             if (a.isActive) {
                                 a.cancel()
                             }
-                            if (readyForDelete) {
-                                readyForDelete = if (deletePost.size == 0) {
+                            if (postLoaded) {
+                                postLoaded = if (deletePost.size == 0) {
                                     Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
                                     false
                                 } else {
@@ -145,13 +186,13 @@ class PostActivity : AppCompatActivity() {
                 popupMenu.show()
             }
         } else {
-            menu_bt_iv_post.visibility = View.GONE
+            postAct_image_menu_bt.visibility = View.GONE
         }
     }
 
     private fun setupRecycler(profileId: String, postId: String) {
         val linearLayoutManager = LinearLayoutManager(context)
-        post_rc.layoutManager = linearLayoutManager
+        postAct_rc_posts.layoutManager = linearLayoutManager
         CoroutineScope(Main).launch {
             queryPost(profileId, postId)
         }
@@ -159,13 +200,12 @@ class PostActivity : AppCompatActivity() {
 
     private fun showDeleteDialog(deletePost: Post) {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("Androidly Alert")
-        builder.setMessage("We have a message")
-//builder.setPositiveButton("OK", DialogInterface.OnClickListener(function = x))
+        builder.setTitle("Delete Post")
+        builder.setMessage("Do you want to delete this post?")
 
         builder.setPositiveButton(android.R.string.ok) { _, _ ->
             CoroutineScope(Main).launch {
-                deletePost(deletePost)
+                deletePostFromAWS(deletePost)
                 finish()
             }
         }
@@ -175,10 +215,6 @@ class PostActivity : AppCompatActivity() {
         }
 
         builder.show()
-    }
-
-    private suspend fun deletePost(post: Post) {
-        deletePostFromAWS(post)
     }
 
     private suspend fun loadProfileImage(filePath: String, imageView: ImageView, context: Context) =
@@ -222,7 +258,7 @@ class PostActivity : AppCompatActivity() {
                     withContext(Main) {
                         runOnUiThread {
                             val fivePosts = getFivePosts(posts)
-                            post_rc.adapter = PostAdapter(fivePosts, context, profileId)
+                            postAct_rc_posts.adapter = PostAdapter(fivePosts, context, profileId)
                             pageHelper(profileId, postId, posts)
                         }
                     }
@@ -241,7 +277,7 @@ class PostActivity : AppCompatActivity() {
                 { response ->
                     for (post in response.data) {
                         postItem.add(post)
-                        readyForDelete = true
+                        postLoaded = true
                     }
                 },
                 { error ->
@@ -292,11 +328,11 @@ class PostActivity : AppCompatActivity() {
                         dataSource: DataSource?,
                         isFirstResource: Boolean
                     ): Boolean {
-                        previous_page_frame_post.isClickable = false
+                        postAct_frame_previous_page.isClickable = false
                         return false
                     }
                 })
-                .into(previous_page_image_post)
+                .into(postAct_image_previous_page)
         } else {
             Glide.with(context)
                 .load(R.drawable.previous_page_available)
@@ -317,18 +353,18 @@ class PostActivity : AppCompatActivity() {
                         dataSource: DataSource?,
                         isFirstResource: Boolean
                     ): Boolean {
-                        previous_page_frame_post.setOnClickListener {
+                        postAct_frame_previous_page.setOnClickListener {
                             if (username != null && id != null) {
                                 postNumber -= 10
                                 val fivePosts = getFivePosts(posts)
-                                post_rc.adapter = PostAdapter(fivePosts, context, username)
+                                postAct_rc_posts.adapter = PostAdapter(fivePosts, context, username)
                                 pageHelper(username, id, posts)
                             }
                         }
                         return false
                     }
                 })
-                .into(previous_page_image_post)
+                .into(postAct_image_previous_page)
         }
         if (postNumber >= posts.size) {
             Glide.with(context)
@@ -350,11 +386,11 @@ class PostActivity : AppCompatActivity() {
                         dataSource: DataSource?,
                         isFirstResource: Boolean
                     ): Boolean {
-                        next_page_frame_post.isClickable = false
+                        postAct_frame_next_page.isClickable = false
                         return false
                     }
                 })
-                .into(next_page_image_post)
+                .into(postAct_image_next_page)
         } else {
             Glide.with(context)
                 .load(R.drawable.next_page_available_24)
@@ -375,17 +411,17 @@ class PostActivity : AppCompatActivity() {
                         dataSource: DataSource?,
                         isFirstResource: Boolean
                     ): Boolean {
-                        next_page_frame_post.setOnClickListener {
+                        postAct_frame_next_page.setOnClickListener {
                             if (username != null && id != null) {
                                 val fivePosts = getFivePosts(posts)
-                                post_rc.adapter = PostAdapter(fivePosts, context, username)
+                                postAct_rc_posts.adapter = PostAdapter(fivePosts, context, username)
                                 pageHelper(username, id, posts)
                             }
                         }
                         return false
                     }
                 })
-                .into(next_page_image_post)
+                .into(postAct_image_next_page)
         }
     }
 

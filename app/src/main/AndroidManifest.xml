@@ -15,7 +15,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:replace="android:name">
-        <activity android:name=".activities.ProvidingPostPermissionActivity"></activity>
+        <activity android:name=".activities.CommentActivity"></activity>
+        <activity android:name=".activities.ProvidingPostPermissionActivity" />
         <activity android:name=".activities.PostActivity" />
         <activity android:name=".activities.UploadActivity" />
         <activity android:name=".activities.SettingsActivity" />

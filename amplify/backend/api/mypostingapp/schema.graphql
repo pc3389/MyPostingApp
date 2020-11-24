@@ -2,10 +2,9 @@ type Profile @model {
     id: ID!
     username: String!
     nickname: String!
+    emailAddress:String!
     profileImage: String
     backgroundImage: String
-    likes: [Like] @connection(keyName: "byProfile", fields: ["id"])
-    comments: [Comment] @connection(keyName: "byProfile", fields: ["id"])
     posts: [Post] @connection(keyName: "byProfile", fields: ["id"])
 }
 
@@ -27,22 +26,19 @@ type PostPermission @model {
     permission: Boolean!
 }
 
-type Comment @model @key(name: ["byPost", "byProfile"], fields: ["postID", "profileID"]) {
+type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
     id: ID!
-    username: String!
     postID: ID!
-    post: Post @connection(fields: ["postID"])
     profileID: ID!
-    profile: Profile @connection(fields: ["profileID"])
+    post: Post @connection(fields: ["postID"])
     content: String!
 }
 
-type Like @model @key(name: ["byPost", "byProfile"], fields: ["postID", "ProfileID"]) {
+type Like @model @key(name: "byPost", fields: ["postID"]) {
     id: ID!
     postID: ID!
+    profileID: ID!
     post: Post @connection(fields: ["postID"])
-    ProfileID: ID!
-    profile: Profile @connection(fields: ["ProfileID"])
 }
 
 enum PostStatus {
