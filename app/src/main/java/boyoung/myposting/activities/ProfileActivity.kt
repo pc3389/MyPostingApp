@@ -125,7 +125,6 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
-
         profAct_image_back_bt.setOnClickListener {
             onBackPressed()
         }

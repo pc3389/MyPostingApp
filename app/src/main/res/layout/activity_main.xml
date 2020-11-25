@@ -30,7 +30,7 @@
             android:contentDescription="@string/back_button"
             android:paddingHorizontal="20dp"
             android:text="Posts"
-            android:textSize="34sp"
+            android:textSize="@dimen/toolbar_text_size"
             android:gravity="center"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/search_bt_image_main"

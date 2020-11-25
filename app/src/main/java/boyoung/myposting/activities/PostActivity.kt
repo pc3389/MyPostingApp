@@ -41,6 +41,7 @@ class PostActivity : AppCompatActivity() {
         private val thisPost: ArrayList<Post> = ArrayList()
         private var postNumber = 0
         private var postLoaded = false
+        val coroutineScope = CoroutineScope(Main)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,70 +52,66 @@ class PostActivity : AppCompatActivity() {
         val profileId = intent.getStringExtra(Constants.PROFILE_ID)
         val postId = intent.getStringExtra(Constants.POST_ID)
 
-        val coroutineScope = CoroutineScope(Main)
         coroutineScope.launch {
-            if (postId != null) {
-                queryPostById(postId, thisPost)
+            val currentUserName = withContext(IO) {Amplify.Auth.currentUser.username}
+            if (postId != null && profileId != null) {
+                queryPostById(postId, thisPost, profileId, currentUserName)
             }
+        }
+        postAct_image_back_bt.setOnClickListener {
+            onBackPressed()
+        }
+    }
 
-            var i = 0
-            while (!postLoaded && i < 10) {
-                delay(100L)
-                i++
+    private fun loadUI(profileId: String, postId: String, currentUserName: String) {
+        val post = thisPost[0]
+        val date = post.date
+        val image = post.image
+        val name = post.profile.nickname
+        val username = post.profile.username
+        val title = post.title
+        val content = post.contents
+        val profileImage = post.profile.profileImage
+        val comments = post.comments.size
+
+        val imagePath = "$cacheDir/$image"
+        val profileImagePath = "$cacheDir/$profileImage"
+        title_tv.text = title
+        date_tv.text = date
+        name_tv.text = name
+        postAct_text_content.text = content
+        val commentSize = "$comments comments"
+        postAct_text_comments.text = commentSize
+
+        val recyclerTitle = "Other posts from $name"
+        postAct_text_recycler_title.text = recyclerTitle
+
+        CoroutineScope(Main).launch {
+            loadProfileImage(profileImagePath, postAct_image_profile_image, context)
+        }
+        loadImage(imagePath)
+
+        if (username != null) {
+            setupRecycler(profileId, postId)
+            setupMenu(username, profileId, currentUserName)
+        }
+
+
+
+        postAct_text_comments.setOnClickListener {
+            if (thisPost[0].comments.size == 0) {
+                val intent = Intent(context, CommentActivity::class.java).apply {
+                    putExtra(Constants.PROFILE_ID, profileId)
+                    putExtra(Constants.POST_ID, postId)
+                }
+                startActivity(intent)
             }
-            if (postLoaded && thisPost.size != 0) {
-                val post = thisPost[0]
-                val date = post.date
-                val image = post.image
-                val name = post.profile.nickname
-                val username = post.profile.username
-                val title = post.title
-                val content = post.contents
-                val profileImage = post.profile.profileImage
-                val comments = post.comments.size
-
-                val imagePath = "$cacheDir/$image"
-                val profileImagePath = "$cacheDir/$profileImage"
-                title_tv.text = title
-                date_tv.text = date
-                name_tv.text = name
-                postAct_text_content.text = content
-                val commentSize = "$comments comments"
-                postAct_text_comments.text = commentSize
-
-                val recyclerTitle = "Other posts from $name"
-                postAct_text_recycler_title.text = recyclerTitle
-
-                CoroutineScope(Main).launch {
-                    loadProfileImage(profileImagePath, postAct_image_profile_image, context)
-                }
-                loadImage(imagePath)
-
-                if (username != null && profileId != null && postId != null) {
-                    setupRecycler(profileId, postId)
-                    setupMenu(username, postId)
-                }
-
-                postAct_image_back_bt.setOnClickListener {
-                    onBackPressed()
-                }
-
-                postAct_text_comments.setOnClickListener {
-                    if (thisPost[0].comments.size == 0) {
-                        val intent = Intent(context, CommentActivity::class.java).apply {
-                            putExtra(Constants.PROFILE_ID, profileId)
-                            putExtra(Constants.POST_ID, postId)
-                        }
-                        startActivity(intent)
-                    }
-                }
-                postAct_layout_profile.setOnClickListener {
-                    val intent = Intent(context, ProfileActivity::class.java).apply {
-                        putExtra(Constants.PROFILE_ID, profileId)
-                    }
-                    startActivity(intent)
-                }
+        }
+        postAct_layout_profile.setOnClickListener {
+            val intent = Intent(context, ProfileActivity::class.java).apply {
+                putExtra(Constants.PROFILE_ID, profileId)
             }
+            startActivity(intent)
         }
     }
 
@@ -149,33 +146,26 @@ class PostActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupMenu(username: String, id: String) {
-        if (username == Amplify.Auth.currentUser.username) {
+    private fun setupMenu(postUsername: String, profileId: String, currentUserName: String) {
+        if (postUsername == currentUserName) {
             postAct_image_menu_bt.setOnClickListener {
                 val popupMenu = PopupMenu(this@PostActivity, postAct_image_menu_bt)
                 popupMenu.menuInflater.inflate(R.menu.menu_post, popupMenu.menu)
                 popupMenu.setOnMenuItemClickListener {
                     if (it.itemId == R.id.action_edit) {
-
+                        val intent = Intent(context, UploadActivity::class.java).apply {
+                            putExtra(Constants.PROFILE_ID, profileId)
+                        }
+                        startActivity(intent)
                     }
                     if (it.itemId == R.id.action_delete) {
                         CoroutineScope(Main).launch {
-                            val deletePost: ArrayList<Post> = ArrayList()
-                            val a = CoroutineScope(IO).launch { queryPostById(id, deletePost) }
-                            var i = 0
-                            while (!postLoaded && i < 20) {
-                                delay(100L)
-                                i++
-                            }
-                            if (a.isActive) {
-                                a.cancel()
-                            }
                             if (postLoaded) {
-                                postLoaded = if (deletePost.size == 0) {
+                                postLoaded = if (thisPost.size == 0) {
                                     Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
                                     false
                                 } else {
-                                    showDeleteDialog(deletePost[0])
+                                    showDeleteDialog(thisPost[0])
                                     false
                                 }
                             }
@@ -210,7 +200,7 @@ class PostActivity : AppCompatActivity() {
             }
         }
 
-        builder.setNegativeButton(android.R.string.cancel) { dialog, which ->
+        builder.setNegativeButton(android.R.string.cancel) { _, _ ->
             onBackPressed()
         }
 
@@ -270,15 +260,19 @@ class PostActivity : AppCompatActivity() {
         )
     }
 
-    private suspend fun queryPostById(id: String, postItem: ArrayList<Post>) =
+    private suspend fun queryPostById(postId: String, postItem: ArrayList<Post>, profileId: String, currentUserName: String) =
         withContext(IO) {
             Amplify.API.query(
-                ModelQuery.list(Post::class.java, Post.ID.contains(id)),
+                ModelQuery.list(Post::class.java, Post.ID.contains(postId)),
                 { response ->
+                    postItem.clear()
                     for (post in response.data) {
-                        postItem.add(post)
-                        postLoaded = true
+                        if(postId == post.id) {
+                            postItem.add(post)
+                            postLoaded = true
+                        }
                     }
+                    loadUI(profileId, postId, currentUserName)
                 },
                 { error ->
                     Log.e("MyAmplifyApp", "Query failure", error)
@@ -426,7 +420,8 @@ class PostActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        finish()
         super.onBackPressed()
+        coroutineScope.cancel()
+        finish()
     }
 }

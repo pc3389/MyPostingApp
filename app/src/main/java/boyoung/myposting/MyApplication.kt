@@ -16,15 +16,14 @@ class MyApplication : Application() {
 
         val config = AmplifyConfiguration.builder(applicationContext).devMenuEnabled(false).build()
         try {
-            // Add these lines to add the AWSCognitoAuthPlugin and AWSS3StoragePlugin plugins
             Amplify.addPlugin(AWSCognitoAuthPlugin())
             Amplify.addPlugin(AWSS3StoragePlugin())
             Amplify.addPlugin(AWSDataStorePlugin())
             Amplify.addPlugin(AWSApiPlugin())
             Amplify.configure(config, applicationContext)
-            Log.i("MyAmplify", "Initialized Amplify")
+            Log.i("MyAmplifyApp", "Initialized Amplify")
         } catch (error: AmplifyException) {
-            Log.e("MyAmplify", "Could not initialize Amplify", error)
+            Log.e("MyAmplifyApp", "Could not initialize Amplify", error)
         }
     }
 }
