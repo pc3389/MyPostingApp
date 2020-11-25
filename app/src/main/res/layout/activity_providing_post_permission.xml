@@ -14,7 +14,7 @@
             android:layout_height="wrap_content"
             android:padding="20dp">
             <TextView
-                android:id="@+id/username_label_permission"
+                android:id="@+id/permissionAct_text_username_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="parent"
@@ -22,21 +22,21 @@
                 app:layout_constraintStart_toStartOf="parent"
                 android:text="Add username: "/>
             <EditText
-                android:id="@+id/add_username_permission"
+                android:id="@+id/permissionAct_edit_username"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
-                app:layout_constraintTop_toTopOf="@id/username_label_permission"
-                app:layout_constraintBottom_toBottomOf="@id/username_label_permission"
-                app:layout_constraintStart_toEndOf="@id/username_label_permission"
-                app:layout_constraintEnd_toStartOf="@id/add_permision_bt"/>
+                app:layout_constraintTop_toTopOf="@id/permissionAct_text_username_label"
+                app:layout_constraintBottom_toBottomOf="@id/permissionAct_text_username_label"
+                app:layout_constraintStart_toEndOf="@id/permissionAct_text_username_label"
+                app:layout_constraintEnd_toStartOf="@id/permissionAct_button_add_permission"/>
             <Button
-                android:id="@+id/add_permision_bt"
+                android:id="@+id/permissionAct_button_add_permission"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Add"
-                app:layout_constraintTop_toTopOf="@id/username_label_permission"
-                app:layout_constraintBottom_toBottomOf="@id/username_label_permission"
+                app:layout_constraintTop_toTopOf="@id/permissionAct_text_username_label"
+                app:layout_constraintBottom_toBottomOf="@id/permissionAct_text_username_label"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
             <View
@@ -44,13 +44,13 @@
                 android:layout_height="1dp"
                 android:background="@color/grey"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/username_rc_permission" />
+                app:layout_constraintBottom_toTopOf="@id/permissionAct_rc_username" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/username_rc_permission"
+                android:id="@+id/permissionAct_rc_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/add_username_permission"
+                app:layout_constraintTop_toBottomOf="@id/permissionAct_edit_username"
                 android:layout_marginTop="20dp"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

@@ -30,50 +30,41 @@ class MainActivity : AppCompatActivity() {
 
     private val posts: ArrayList<Post> = ArrayList()
     private val profile: ArrayList<Profile> = ArrayList()
-    private var profileReady = false
+    private val coroutineScope = CoroutineScope(Main)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val coroutineScope = CoroutineScope(Main)
+
         coroutineScope.launch {
+            showProgressBar()
             val username = getUsername()
+            val linearLayoutManager = LinearLayoutManager(context)
+            mainAct_rc_posts.layoutManager = linearLayoutManager
             getPostPermission(username)
             queryProfile(username)
-            var i = 0
-            while (!profileReady && i < 10) {
-                delay(100L)
-                i++
-            }
-            if (profileReady) {
-                queryPost()
-            }
-
-            val linearLayoutManager = LinearLayoutManager(context)
-            main_rc.layoutManager = linearLayoutManager
         }
-        turnOnProgressBar()
-        setupMenu()
 
-        itemsswipetorefresh.setProgressBackgroundColorSchemeColor(
+        mainAct_itemsswipetorefresh.setProgressBackgroundColorSchemeColor(
             ContextCompat.getColor(
                 this,
                 R.color.colorPrimary
             )
         )
-        itemsswipetorefresh.setColorSchemeColors(Color.WHITE)
 
-        itemsswipetorefresh.setOnRefreshListener {
-            turnOnProgressBar()
+        mainAct_itemsswipetorefresh.setColorSchemeColors(Color.WHITE)
+
+        mainAct_itemsswipetorefresh.setOnRefreshListener {
+            showProgressBar()
             coroutineScope.launch {
                 queryPost()
             }
         }
 
-        button_add.setOnClickListener {
+        mainAct_image_uploadPost_bt.setOnClickListener {
             if (profile.size != 0) {
-                toPostActivity(profile[0].id)
+                toUploadActivity(profile[0].id)
             } else {
                 Toast.makeText(this, "Profile is not loaded", Toast.LENGTH_SHORT).show()
             }
@@ -82,14 +73,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        turnOnProgressBar()
+        showProgressBar()
         CoroutineScope(Main).launch {
             queryPost()
         }
         super.onResume()
     }
 
-    private fun toPostActivity(profileId: String) {
+    private fun toUploadActivity(profileId: String) {
         val intent = Intent(this, UploadActivity::class.java).apply {
             putExtra(Constants.PROFILE_ID, profileId)
         }
@@ -112,14 +103,16 @@ class MainActivity : AppCompatActivity() {
                 if (profile.size == 0) {
                     startProfileActivity()
                 } else {
-                    profileReady = true
+                    coroutineScope.launch {
+                        queryPost()
+                        setupMenu()
+                    }
                 }
-
             },
             { error ->
                 Log.e("MyAmplifyApp", "Query failure", error)
                 runOnUiThread {
-                    turnOffProgressBar()
+                    hideProgressBar()
                 }
             }
         )
@@ -139,15 +132,15 @@ class MainActivity : AppCompatActivity() {
                     withContext(Default) {
                         posts.sortByDescending { it.date }
                     }
-                    main_rc.adapter = MainAdapters(posts, context)
-                    itemsswipetorefresh.isRefreshing = false
-                    turnOffProgressBar()
+                    mainAct_rc_posts.adapter = MainAdapters(posts, context)
+                    mainAct_itemsswipetorefresh.isRefreshing = false
+                    hideProgressBar()
                 }
             },
             { error ->
                 Log.e("MyAmplifyApp", "Query failure", error)
                 runOnUiThread {
-                    turnOffProgressBar()
+                    hideProgressBar()
                 }
             }
         )
@@ -173,14 +166,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupMenu() {
-        menu_bt_image_main.setOnClickListener {
-            val popupMenu = PopupMenu(this@MainActivity, menu_bt_image_main)
+        mainAct_image_menu_bt.setOnClickListener {
+            val popupMenu = PopupMenu(this@MainActivity, mainAct_image_menu_bt)
             popupMenu.menuInflater.inflate(R.menu.menu_main, popupMenu.menu)
             popupMenu.menu.findItem(R.id.action_providePostPermission).isVisible =
                 getUsername() == "pc3389"
             if (getUsername() == "guest") {
                 popupMenu.menu.findItem(R.id.action_profile).isVisible = false
             }
+
             popupMenu.setOnMenuItemClickListener {
                 if (it.itemId == R.id.action_settings) {
                     val intent = Intent(this, SettingsActivity::class.java)
@@ -208,24 +202,21 @@ class MainActivity : AppCompatActivity() {
         Amplify.API.query(
             ModelQuery.list(PostPermission::class.java, PostPermission.USERNAME.contains("")),
             { response ->
-                val usernameList: ArrayList<PostPermission> = ArrayList()
-                val postPermission = PostPermission.builder()
-                    .username(getUsername())
-                    .permission(true)
-                    .build()
+                var ispossible = false
+                runOnUiThread { mainAct_image_uploadPost_bt.visibility = View.GONE }
                 for (usernameItem in response.data) {
-                    if (usernameItem.username == name)
-                        usernameList.add(usernameItem)
-                }
-                Log.i("MyAmplifyApp", "Usernames updated in recyclerview")
-                if (usernameList.isNotEmpty()) {
-                    if (usernameList[0].permission == true) {
-                        runOnUiThread { button_add.visibility = View.VISIBLE }
-                    } else {
-                        runOnUiThread { button_add.visibility = View.GONE }
+                    if (usernameItem.username == name) {
+                        if (usernameItem.permission == true) {
+                            runOnUiThread { mainAct_image_uploadPost_bt.visibility = View.VISIBLE }
+                            ispossible = true
+                            Log.e("MyAmplifyApp", "This user can post items")
+                        } else {
+                            runOnUiThread { mainAct_image_uploadPost_bt.visibility = View.GONE }
+                        }
                     }
-                } else {
-                    runOnUiThread { button_add.visibility = View.GONE }
+                }
+                if (!ispossible) {
+                    Log.e("MyAmplifyApp", "This user can't post items")
                 }
             },
             { error ->
@@ -238,11 +229,11 @@ class MainActivity : AppCompatActivity() {
         return Amplify.Auth.currentUser.username
     }
 
-    private fun turnOnProgressBar() {
+    private fun showProgressBar() {
         runOnUiThread {
-            itemsswipetorefresh.visibility = View.INVISIBLE
-            main_rc.visibility = View.GONE
-            progressbar_main.visibility = View.VISIBLE
+            mainAct_itemsswipetorefresh.visibility = View.INVISIBLE
+            mainAct_rc_posts.visibility = View.GONE
+            mainAct_progressbar.visibility = View.VISIBLE
         }
     }
 
@@ -258,11 +249,11 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    private fun turnOffProgressBar() {
+    private fun hideProgressBar() {
         runOnUiThread {
-            itemsswipetorefresh.visibility = View.VISIBLE
-            main_rc.visibility = View.VISIBLE
-            progressbar_main.visibility = View.GONE
+            mainAct_itemsswipetorefresh.visibility = View.VISIBLE
+            mainAct_rc_posts.visibility = View.VISIBLE
+            mainAct_progressbar.visibility = View.GONE
         }
     }
 }

@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import boyoung.myposting.R
-import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.datastore.generated.model.PostPermission
 import kotlinx.android.synthetic.main.userid_list_item.view.*
 
@@ -15,8 +14,8 @@ class PermissionAdapter(val items: ArrayList<PostPermission>, val context: Conte
     RecyclerView.Adapter<PermissionAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val usernameTextView: TextView = view.username_item_permission
-        val isPostableTextView : TextView = view.isPostable_item_permission
+        val usernameTextView: TextView = view.item_permission_text_username
+        val isPostableTextView : TextView = view.item_permission_text_isPostable
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

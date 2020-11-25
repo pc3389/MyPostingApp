@@ -23,18 +23,22 @@ class SignUpActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
 
-        textView_signUp.setOnClickListener {
-            val username:String = editText_signUpId.text.toString()
-            val password: String = editText_signUpPassword.text.toString()
-            val emailAddress: String = editText_signUpEmailAddress.text.toString()
-            val phoneNumber = editTextPhone.text.toString()
+        signUpAct_text_signUp_bt.setOnClickListener {
+            val username:String = signUpAct_edit_username.text.toString()
+            val password: String = signUpAct_edit_password.text.toString()
+            val emailAddress: String = signUpAct_edit_email.text.toString()
+            val phoneNumber = signUpAct_edit_phone.text.toString()
             if(username.isEmpty() || password.isEmpty() || emailAddress.isEmpty()) {
-                if(username.isEmpty()) {
-                    Toast.makeText(this, "Username is required", Toast.LENGTH_SHORT).show()
-                } else if (password.isEmpty()) {
-                    Toast.makeText(this, "password is required", Toast.LENGTH_SHORT).show()
-                } else if (emailAddress.isEmpty()) {
-                    Toast.makeText(this, "Email is required", Toast.LENGTH_SHORT).show()
+                when {
+                    username.isEmpty() -> {
+                        Toast.makeText(this, "Username is required", Toast.LENGTH_SHORT).show()
+                    }
+                    password.isEmpty() -> {
+                        Toast.makeText(this, "password is required", Toast.LENGTH_SHORT).show()
+                    }
+                    emailAddress.isEmpty() -> {
+                        Toast.makeText(this, "Email is required", Toast.LENGTH_SHORT).show()
+                    }
                 }
             } else {
                 CoroutineScope(IO).launch {

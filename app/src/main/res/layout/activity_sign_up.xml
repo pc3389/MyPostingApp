@@ -7,30 +7,30 @@
     tools:context=".activities.SignUpActivity">
 
     <EditText
-        android:id="@+id/editText_signUpId"
+        android:id="@+id/signUpAct_edit_username"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="40dp"
         android:ems="10"
         android:hint="ID"
         android:inputType="textPersonName"
-        app:layout_constraintBottom_toTopOf="@+id/editText_signUpPassword"
-        app:layout_constraintStart_toStartOf="@+id/editText_signUpPassword" />
+        app:layout_constraintBottom_toTopOf="@+id/signUpAct_edit_password"
+        app:layout_constraintStart_toStartOf="@+id/signUpAct_edit_password" />
 
 
     <EditText
-        android:id="@+id/editText_signUpPassword"
+        android:id="@+id/signUpAct_edit_password"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="28dp"
         android:ems="10"
         android:hint="password"
         android:inputType="textPassword"
-        app:layout_constraintBottom_toTopOf="@+id/editText_signUpEmailAddress"
-        app:layout_constraintStart_toStartOf="@+id/editText_signUpEmailAddress" />
+        app:layout_constraintBottom_toTopOf="@+id/signUpAct_edit_email"
+        app:layout_constraintStart_toStartOf="@+id/signUpAct_edit_email" />
 
     <EditText
-        android:id="@+id/editText_signUpEmailAddress"
+        android:id="@+id/signUpAct_edit_email"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="340dp"
@@ -42,22 +42,22 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/textView_signUp"
+        android:id="@+id/signUpAct_text_signUp_bt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="64dp"
         android:text="SignUp"
-        app:layout_constraintStart_toStartOf="@+id/editTextPhone"
-        app:layout_constraintTop_toBottomOf="@+id/editTextPhone" />
+        app:layout_constraintStart_toStartOf="@+id/signUpAct_edit_phone"
+        app:layout_constraintTop_toBottomOf="@+id/signUpAct_edit_phone" />
 
     <EditText
-        android:id="@+id/editTextPhone"
+        android:id="@+id/signUpAct_edit_phone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
         android:ems="10"
         android:hint="phone"
         android:inputType="phone"
-        app:layout_constraintStart_toStartOf="@+id/editText_signUpEmailAddress"
-        app:layout_constraintTop_toBottomOf="@+id/editText_signUpEmailAddress" />
+        app:layout_constraintStart_toStartOf="@+id/signUpAct_edit_email"
+        app:layout_constraintTop_toBottomOf="@+id/signUpAct_edit_email" />
 </androidx.constraintlayout.widget.ConstraintLayout>

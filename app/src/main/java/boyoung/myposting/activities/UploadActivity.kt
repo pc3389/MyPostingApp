@@ -57,21 +57,21 @@ class UploadActivity : AppCompatActivity() {
                 finish()
             }
         }
-        back_tv_upload.setOnClickListener {
+        uploadAct_text_back_bt.setOnClickListener {
             onBackPressed()
         }
-        savePost_tv_upload.setOnClickListener {
+        uploadAct_text_save.setOnClickListener {
             CoroutineScope(Main).launch {
-                if (title_et_upload.text.toString() == "") {
+                if (uploadAct_edit_title.text.toString() == "") {
                     Toast.makeText(context, "Title should not be empty", Toast.LENGTH_SHORT).show()
                 } else {
-                    val title = title_et_upload.text.toString()
+                    val title = uploadAct_edit_title.text.toString()
                     val imageKey = if (hasImage) {
                         getImageKey(title)
                     } else {
                         null
                     }
-                    val content = content_et_upload.text.toString()
+                    val content = uploadAct_edit_content.text.toString()
                     if (profileList.size != 0) {
                         val profile = profileList[0]
                         post(file, title, content, PostStatus.PUBLISHED, imageKey, profile)
@@ -80,7 +80,7 @@ class UploadActivity : AppCompatActivity() {
             }
 
         }
-        add_photo_tv_upload.setOnClickListener {
+        uploadAct_text_add_photo_bt.setOnClickListener {
             getImage()
         }
     }
@@ -161,7 +161,7 @@ class UploadActivity : AppCompatActivity() {
             }
             Glide.with(this)
                 .load(data?.data)
-                .into(image_iv_upload)
+                .into(uploadAct_image_postImage)
             hasImage = true
         }
         super.onActivityResult(requestCode, resultCode, data)
@@ -242,16 +242,16 @@ class UploadActivity : AppCompatActivity() {
 
     private fun turnOnProgressBar() {
         runOnUiThread {
-            layout_upload.visibility = View.INVISIBLE
-            progressbar_upload.visibility = View.VISIBLE
+            uploadAct_layout_all.visibility = View.INVISIBLE
+            uploadAct_progressbar.visibility = View.VISIBLE
         }
 
     }
 
     private fun turnOffProgressBar() {
         runOnUiThread {
-            layout_upload.visibility = View.VISIBLE
-            progressbar_upload.visibility = View.GONE
+            uploadAct_layout_all.visibility = View.VISIBLE
+            uploadAct_progressbar.visibility = View.GONE
         }
 
     }

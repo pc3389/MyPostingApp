@@ -19,18 +19,18 @@ class ConfirmationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_confirmation)
         val username: String? = intent.getStringExtra(Constants.KEY_USERNAME)
-        textView_username.text = username
+        confirmAct_text_username.text = username
 
-        textView_confirm.setOnClickListener {
+        confirmAct_text_confirm_bt.setOnClickListener {
             if (username != null) {
-                val confirmationCode = editText_Confirmation.text.toString()
+                val confirmationCode = confirmAct_edit_Confirmation.text.toString()
                 CoroutineScope(IO).launch {
                     confirmSignUp(username, confirmationCode)
                 }
             }
         }
 
-        textView_resend.setOnClickListener {
+        confirmAct_text_resend_bt.setOnClickListener {
             if (username != null) {
                 CoroutineScope(IO).launch {
                     resendConfirm(username)

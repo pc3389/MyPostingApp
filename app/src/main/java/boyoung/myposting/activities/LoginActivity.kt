@@ -43,37 +43,42 @@ class LoginActivity : AppCompatActivity() {
                         }
                     )
                 } else if (result.isSignedIn) {
-                    progressbar_item.visibility = View.VISIBLE
-                    login_layout.visibility = View.GONE
+                    loginAct_progressbar.visibility = View.VISIBLE
+                    loginAct_layout_all.visibility = View.GONE
                     startMainActivity()
                     finish()
                 }
                 Log.i("MyAmplifyApp", result.toString())
+                setupUI()
             },
             { error -> Log.e("MyAmplifyApp", error.toString()) }
         )
 
-        textView_guest.setOnClickListener {
+
+    }
+
+    private fun setupUI() {
+        loginAct_text_guest_bt.setOnClickListener {
             CoroutineScope(IO).launch { logIn("guest", "djaak123") }
         }
 
-        textView_signUp.setOnClickListener {
+        loginAct_text_signUp_bt.setOnClickListener {
             val intent = Intent(this, SignUpActivity::class.java)
             startActivity(intent)
             finish()
         }
 
-        textView_logIn.setOnClickListener {
-            val username: String = editText_signIn_id.text.toString()
-            val password: String = editText_signIn_password.text.toString()
+        loginAct_text_logIn_bt.setOnClickListener {
+            val username: String = loginAct_edit_username.text.toString()
+            val password: String = loginAct_edit_password.text.toString()
             CoroutineScope(Main).launch {
                 logIn(username, password)
             }
         }
-        editText_signIn_password.setOnEditorActionListener { view, actionId, event ->
+        loginAct_edit_password.setOnEditorActionListener { _, actionId, _ ->
             var handled = false
-            val username: String = editText_signIn_id.text.toString()
-            val password: String = editText_signIn_password.text.toString()
+            val username: String = loginAct_edit_username.text.toString()
+            val password: String = loginAct_edit_password.text.toString()
             if (actionId === EditorInfo.IME_ACTION_DONE) {
                 CoroutineScope(Main).launch {
                     logIn(username, password)
@@ -85,8 +90,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private suspend fun logIn(username: String, password: String) = withContext(Main) {
-        progressbar_item.visibility = View.VISIBLE
-        login_layout.visibility = View.GONE
+        loginAct_progressbar.visibility = View.VISIBLE
+        loginAct_layout_all.visibility = View.GONE
         withContext(IO) {
             Amplify.Auth.signIn(
                 username,
@@ -109,8 +114,8 @@ class LoginActivity : AppCompatActivity() {
                             Toast.makeText(context, "Incorrect username or password", Toast.LENGTH_SHORT).show()
                         }
 
-                        progressbar_item.visibility = View.GONE
-                        login_layout.visibility = View.VISIBLE
+                        loginAct_progressbar.visibility = View.GONE
+                        loginAct_layout_all.visibility = View.VISIBLE
                     }
                 }
             )

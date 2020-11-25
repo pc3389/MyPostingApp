@@ -6,38 +6,36 @@
     android:layout_height="match_parent"
     tools:context=".activities.LoginActivity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/progressbar_item"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone">
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ProgressBar
+        android:id="@+id/loginAct_progressbar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/login_layout"
+        android:id="@+id/loginAct_layout_all"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <EditText
-            android:id="@+id/editText_signIn_id"
+            android:id="@+id/loginAct_edit_username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ems="10"
             android:hint="id"
             android:inputType="textPersonName"
-            app:layout_constraintBottom_toTopOf="@+id/editText_signIn_password"
-            app:layout_constraintStart_toStartOf="@+id/editText_signIn_password"
+            app:layout_constraintBottom_toTopOf="@+id/loginAct_edit_password"
+            app:layout_constraintStart_toStartOf="@+id/loginAct_edit_password"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.833" />
 
         <EditText
-            android:id="@+id/editText_signIn_password"
+            android:id="@+id/loginAct_edit_password"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="352dp"
@@ -49,7 +47,7 @@
             app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
-            android:id="@+id/textView_signUp"
+            android:id="@+id/loginAct_text_signUp_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="100dp"
@@ -57,29 +55,28 @@
             android:text="Sign Up"
             android:textSize="30sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView_logIn" />
+            app:layout_constraintTop_toBottomOf="@+id/loginAct_text_logIn_bt" />
 
         <TextView
-            android:id="@+id/textView_logIn"
+            android:id="@+id/loginAct_text_logIn_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="48dp"
             android:text="LogIn"
             android:textSize="30sp"
-            app:layout_constraintStart_toStartOf="@+id/textView_signUp"
-            app:layout_constraintTop_toBottomOf="@+id/editText_signIn_password" />
+            app:layout_constraintStart_toStartOf="@+id/loginAct_text_signUp_bt"
+            app:layout_constraintTop_toBottomOf="@+id/loginAct_edit_password" />
 
         <TextView
-            android:id="@+id/textView_guest"
+            android:id="@+id/loginAct_text_guest_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Guest"
             android:textSize="30sp"
-            app:layout_constraintStart_toStartOf="@+id/textView_signUp"
-            app:layout_constraintTop_toBottomOf="@+id/textView_signUp" />
+            app:layout_constraintStart_toStartOf="@+id/loginAct_text_signUp_bt"
+            app:layout_constraintTop_toBottomOf="@+id/loginAct_text_signUp_bt" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

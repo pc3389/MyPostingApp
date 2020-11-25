@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
-        android:id="@+id/username_item_permission"
+        android:id="@+id/item_permission_text_username"
         android:paddingVertical="20dp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -14,10 +14,10 @@
         android:textSize="@dimen/small_text_size"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/isPostable_item_permission"/>
+        app:layout_constraintEnd_toStartOf="@id/item_permission_text_isPostable"/>
 
     <TextView
-        android:id="@+id/isPostable_item_permission"
+        android:id="@+id/item_permission_text_isPostable"
         android:paddingVertical="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -31,6 +31,6 @@
         android:layout_height="1dp"
         android:background="@color/grey"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/username_item_permission" />
+        app:layout_constraintTop_toBottomOf="@id/item_permission_text_username" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

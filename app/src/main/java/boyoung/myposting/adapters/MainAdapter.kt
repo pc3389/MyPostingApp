@@ -8,15 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import boyoung.myposting.R
 import boyoung.myposting.activities.PostActivity
 import boyoung.myposting.utilities.Constants
-import com.amplifyframework.api.graphql.model.ModelMutation
-import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.storage.StorageException
@@ -27,7 +25,6 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import kotlinx.android.synthetic.main.main_list_item.view.*
-import kotlinx.android.synthetic.main.post_list_item.view.layout_item
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -43,15 +40,15 @@ class MainAdapters(private val items: ArrayList<Post>, val context: Context) :
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         // Holds the TextView that will add each animal to
-        val nameTextView: TextView = view.name_tv_item
-        val dateTextView: TextView = view.date_tv_item
-        val titleTextView: TextView = view.title_tv_item
-        val contentTextView: TextView = view.content_tv_item
-        val commentsTextView: TextView = view.comments_tv_item
-        val imageImageView: ImageView = view.postImage_iv_item
-        val progressbar: ConstraintLayout = view.progressbar_item
-        val itemLayout: ConstraintLayout = view.layout_item
-        val profileImageView: ImageView = view.profile_image_iv_item
+        val nameTextView: TextView = view.item_main_text_name
+        val dateTextView: TextView = view.item_main_text_date
+        val titleTextView: TextView = view.item_main_text_title
+        val contentTextView: TextView = view.item_main_text_content
+        val commentsTextView: TextView = view.item_main_text_comments
+        val imageImageView: ImageView = view.item_main_image_postImage
+        val progressbar: ProgressBar = view.item_main_progressbar
+        val itemLayout: ConstraintLayout = view.item_main_layout_all
+        val profileImageView: ImageView = view.item_main_image_profile_image
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

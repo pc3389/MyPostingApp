@@ -6,84 +6,82 @@
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/progressbar_main"
+
+    <ProgressBar
+        android:id="@+id/mainAct_progressbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <ProgressBar
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/toolbar_main"
+        android:id="@+id/mainAct_layout_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/back_bt_main"
+            android:id="@+id/mainAct_image_back_bt"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:contentDescription="@string/back_button"
+            android:gravity="center"
             android:paddingHorizontal="20dp"
             android:text="Posts"
             android:textSize="@dimen/toolbar_text_size"
-            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="@id/mainAct_image_search_bt"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/search_bt_image_main"
-            app:layout_constraintBottom_toBottomOf="@id/search_bt_image_main" />
+            app:layout_constraintTop_toTopOf="@id/mainAct_image_search_bt" />
 
         <ImageView
-            android:id="@+id/button_add"
+            android:id="@+id/mainAct_image_uploadPost_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="20dp"
             android:src="@drawable/ic_add_post_24"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/search_bt_image_main"/>
+            app:layout_constraintEnd_toStartOf="@id/mainAct_image_search_bt"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/search_bt_image_main"
+            android:id="@+id/mainAct_image_search_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_search_24"
+            android:contentDescription="Search Button"
             android:padding="20dp"
-            app:layout_constraintEnd_toStartOf="@id/menu_bt_image_main"
-            app:layout_constraintTop_toTopOf="parent"
-            android:contentDescription="Search Button" />
+            android:src="@drawable/ic_search_24"
+            app:layout_constraintEnd_toStartOf="@id/mainAct_image_menu_bt"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/menu_bt_image_main"
+            android:id="@+id/mainAct_image_menu_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:contentDescription="Image Button"
             android:padding="20dp"
             android:src="@drawable/ic_menu_24"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:contentDescription="Image Button" />
+            app:layout_constraintTop_toTopOf="parent" />
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/grey"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/menu_bt_image_main" />
+            app:layout_constraintTop_toBottomOf="@id/mainAct_image_menu_bt" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/itemsswipetorefresh"
+        android:id="@+id/mainAct_itemsswipetorefresh"
         android:layout_width="wrap_content"
         android:layout_height="0px"
         android:layout_weight="1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar_main" >
+        app:layout_constraintTop_toBottomOf="@id/mainAct_layout_toolbar">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/main_rc"
+            android:id="@+id/mainAct_rc_posts"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 

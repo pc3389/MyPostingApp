@@ -21,10 +21,10 @@ class PostAdapter(private val items: ArrayList<Post>, val context: Context, val 
     RecyclerView.Adapter<PostAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val dateTextView: TextView = view.date_tv_post_item
-        val titleTextView: TextView = view.title_tv_post_item
-        val commentsTextView: TextView = view.comments_tv_post_item
-        val imageImageView: ImageView = view.postImage_iv_post_item
+        val dateTextView: TextView = view.item_post_text_date
+        val titleTextView: TextView = view.item_post_text_title
+        val commentsTextView: TextView = view.item_post_text_comments
+        val imageImageView: ImageView = view.item_post_image_postImage
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
